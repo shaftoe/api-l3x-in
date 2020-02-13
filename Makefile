@@ -1,9 +1,8 @@
 include config.mk
 
 DIR := app
-CDK_NOENV := cdk --profile $(AWS_PROFILE)
 VENV := . .env/bin/activate
-CDK := $(VENV) && $(CDK_NOENV) --output cdk.out
+CDK := cdk --profile $(AWS_PROFILE)
 CHECK_PY := if [ $(shell python --version 2>&1 | cut -c 8) -eq "3" ]; then true;
 
 # Colors: https://stackoverflow.com/a/20983251/2274124
@@ -18,20 +17,14 @@ install_venv: # in the unfortunate case your workstation is still running Python
 	@$(CHECK_PY) else python3 -m venv .env; fi
 
 check_python:
-	@$(CHECK_PY) else printf '$(RED)error: Python v3 required$(CLR)\n'; exit 1; fi
-
-init: install_venv # Needed only one time to bootstrap development
-	@$(CDK_NOENV) init app --language python
-	@rm -rf $(DIR)/.git
-	@git mv lambda $(DIR)
-	@git mv -f requirements.txt $(DIR)
-	@git mv -f src/app.py $(DIR)
-	@git mv -f src/stack.py $(DIR)/$(DIR)/$(DIR)_stack.py
-	@rm $(DIR)/source.bat
+	@$(CHECK_PY) else \
+		printf '$(RED)error: Python v3 required\n'; \
+		printf 'install it in the PATH then run:  $(GREEN)`make install_venv`$(CLR)\n'; \
+		exit 1; fi
 
 requirements: check_python
 	@printf '$(GREEN)$(BOLD)### Install requirements$(CLR)\n'
-	$(VENV) && pip install --quiet -e .
+	pip install --quiet -e .
 
 bootstrap: requirements
 	@printf '$(GREEN)$(BOLD)### Bootstrap$(CLR)\n'
@@ -73,9 +66,17 @@ diff: requirements clean
 
 clean:
 	@printf '$(GREEN)$(BOLD)### Cleanup local Python caches$(CLR)\n'
-	@$(VENV) && python3 src/bin/cleanup_cache.py > /dev/null
+	python src/bin/cleanup_cache.py src/ > /dev/null
+	@printf '$(GREEN)$(BOLD)### Cleanup local Python `pyc` files$(CLR)\n'
+	find . -iname "*.pyc" -type f -delete
 
 run-tests:
 	@printf '$(RED)FIXME: no test runner available$(CLR)\n'
 
-all: init bootstrap deploy reminder
+all: bootstrap deploy reminder
+
+local-run:
+	python bin/run.py
+
+create-stack-scaffold:
+	# TODO
