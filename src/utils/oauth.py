@@ -39,7 +39,7 @@ def post_request_to_v1_endpoint(url: str, client_key: str, client_secret: str,
     if resp.status_code == 200:
         Log.info("POST request to {} successful".format(url))
 
-        response.put_text(resp.text)
+        response.put(resp.text)
         return response
 
     else:

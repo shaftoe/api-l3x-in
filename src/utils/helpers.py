@@ -100,7 +100,7 @@ def send_http_request(url: str, method: str="POST", data: Union[list, None]=None
     if resp.status_code == 200:
         Log.info("{} to {} successful".format(method.upper(), url))
 
-        response.put_text(text=resp.text)
+        response.put(resp.text)
         return response
 
     else:

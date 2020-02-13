@@ -1,4 +1,6 @@
 """
+api-l3x-in utilities library
+
 FIXME: Move this package into a dedicated Lambda Layer when this bug is fixed:
        https://github.com/aws/aws-cdk/issues/1972
 """
@@ -52,9 +54,8 @@ class Response(dict):
 
     def __init__(self):
         dict.__init__(self)
-        self._message = None
-        self._error = None
         self._text = None
+        self._error = None
         self.update({
             "isBase64Encoded": False,
             "headers": {"Access-Control-Allow-Origin": environ.get("CORS_ALLOW_ORIGIN", "*")},
@@ -63,11 +64,7 @@ class Response(dict):
 
     @property
     def text(self) -> Union[str, None]:
-        """Used internally to pass around strings, will not be returned to Gateway body response"""
         return self._text
-
-    def put_text(self, text: str):
-        self._text = text
 
     @property
     def status_code(self) -> int:
@@ -96,11 +93,11 @@ class Response(dict):
             self._print_log()
 
         else:
-            self._message = content
+            self._text = content
 
         self.update({
             "statusCode": self.status_code,
             "body": json.dumps({"error": str(self._error)} if self._error
-                                                           else {"message": self._message},
+                                                           else {"message": self._text},
                                 indent=4),
         })

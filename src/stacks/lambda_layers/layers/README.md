@@ -29,3 +29,13 @@ E.g. check that:
     cd layers/bs4/python/ && python -c 'import bs4'
 
 returns exit code 0
+
+## Install
+
+- bs4
+  - https://www.crummy.com/software/BeautifulSoup/bs4/download/
+  - pip install -t . soupsieve
+- requests_oauth
+  - pip install -t . requests_oauth
+
+and remember to cleanup useless files like `pyc`, tests, etc
