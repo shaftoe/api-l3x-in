@@ -5,41 +5,50 @@ Main AWS CDK app
 Docs: https://docs.aws.amazon.com/cdk/api/latest/python/
 """
 
+from os import environ as env
+with open("VERSION") as f:
+    env["VERSION"] = f.read().rstrip()
+
+from sys import stdout
+print("### api-l3x-in version ", end="")
+stdout.write("\033[1;31m") # Set red, ref https://stackoverflow.com/a/37340245/2274124
+print(env["VERSION"])
+stdout.write("\033[0;0m") # Unset color
+
 from aws_cdk import core
+APP = core.App()
 
 from stacks.api import ApiStack
 from stacks.lambda_layers import LambdaLayersStack
 from stacks.publish_to_social import SocialPublishStack
 
-app = core.App()
-
-layers_stack = LambdaLayersStack(
-  app,
-  'lambda-layers',
-  tags={
-    'Managed': 'cdk',
-    'Name': 'lambda-layers',
-  },
+LAYERS_STACK = LambdaLayersStack(
+    APP,
+    'lambda-layers',
+    tags={
+        'Managed': 'cdk',
+        'Name': 'lambda-layers',
+    },
 )
 
 ApiStack(
-  app,
-  'api',
-  lambda_layers=layers_stack.layers,
-  tags={
-    'Managed': 'cdk',
-    'Name': 'api',
-  },
+    APP,
+    'api',
+    lambda_layers=LAYERS_STACK.layers,
+    tags={
+        'Managed': 'cdk',
+        'Name': 'api',
+    },
 )
 
 SocialPublishStack(
-  app,
-  'publish-to-social',
-  lambda_layers=layers_stack.layers,
-  tags={
-    'Managed': 'cdk',
-    'Name': 'publish-to-social',
-  },
+    APP,
+    'publish-to-social',
+    lambda_layers=LAYERS_STACK.layers,
+    tags={
+        'Managed': 'cdk',
+        'Name': 'publish-to-social',
+    },
 )
 
-app.synth()
+APP.synth()
