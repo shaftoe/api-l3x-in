@@ -35,6 +35,7 @@ returns exit code 0
 - bs4
   - https://www.crummy.com/software/BeautifulSoup/bs4/download/
   - pip install -t . soupsieve
+  - 2to3 -w bs4
 - requests_oauth
   - pip install -t . requests_oauth
 

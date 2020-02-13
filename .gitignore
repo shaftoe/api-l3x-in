@@ -5,5 +5,4 @@ __pycache__
 *.pyc
 cdk.out
 config.mk
-layers/
 run.py
