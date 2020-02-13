@@ -15,12 +15,19 @@ LOG_LEVEL = environ.get("LAMBDA_FUNCTIONS_LOG_LEVEL", "INFO")
 Log = logging.getLogger()
 Log.setLevel(LOG_LEVEL)
 
-__version__ = environ.get("VERSION", "[WARNING: version unset, please fix]")
-Log.info("api-l3x-in utils v{}, setting LOG_LEVEL to {}".format(__version__, LOG_LEVEL))
+__version__ = None
 
+try:
+    __version__ = environ["VERSION"]
+    Log.info("api-l3x-in utils v{}, "
+             "setting LOG_LEVEL to {}".format(__version__, LOG_LEVEL))
+
+except KeyError:
+    Log.info("api-l3x-in utils, setting LOG_LEVEL to {}".format(LOG_LEVEL))
+    Log.warning("api-l3x-in utils: missing __version__ in environment")
 
 # Using custom types to help reasoning about Lambda metadata
-LambdaEvent   = NewType("LambdaEvent", dict)
+LambdaEvent = NewType("LambdaEvent", dict)
 LambdaContext = NewType("LambdaContext", object)
 
 
