@@ -66,7 +66,7 @@ diff: requirements clean
 
 clean:
 	@printf '$(GREEN)$(BOLD)### Cleanup local Python caches$(CLR)\n'
-	python src/bin/cleanup_cache.py src/ > /dev/null
+	python bin/cleanup_cache.py src/ bin/ > /dev/null
 	@printf '$(GREEN)$(BOLD)### Cleanup local Python `pyc` files$(CLR)\n'
 	find . -iname "*.pyc" -type f -delete
 
