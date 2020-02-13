@@ -54,7 +54,7 @@ def import_non_stdlib_module(module: str):
     return mod
 
 
-def get_file_from_github(filename: str) -> str:
+def get_file_from_github(filepath: str) -> str:
     """Download file content from raw.githubusercontent.com
 
     Use basic auth:
@@ -64,9 +64,9 @@ def get_file_from_github(filename: str) -> str:
     """
     requests_auth = import_non_stdlib_module("requests.auth")
 
-    GITHUB_URL = "https://raw.githubusercontent.com"
+    GITHUB_URL = "https://github.com"
 
-    return send_http_request(urllib.parse.urljoin(GITHUB_URL, filename),
+    return send_http_request(urllib.parse.urljoin(GITHUB_URL, filepath),
                              method="GET",
                              auth = requests_auth.HTTPBasicAuth(
                                  environ["GITHUB_USER"],

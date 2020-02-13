@@ -74,13 +74,14 @@ def publish(event: dict) -> str:
     else:
         raise utils.HandledError("Missing both 'url' and 'message' keys in payload")
 
-    return "messageId '{}' with content '{}' delivered successfully".format(
-        helpers.publish_to_sns_topic(
-            sns_topic=SNS_TOPIC,
-            subject="publish_to_social",
-            content=content
-        ).text,
-        content)
+    message_id = helpers.publish_to_sns_topic(
+        sns_topic=SNS_TOPIC,
+        subject="publish_to_social",
+        content=content
+    ).text
+
+    return "messageId '{}' with content scraped from source {} delivered successfully".format(
+        message_id, event["url"])
 
 
 def handler(event, context) -> utils.Response:
