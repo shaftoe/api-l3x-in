@@ -56,28 +56,6 @@ def import_non_stdlib_module(module: str):
     return mod
 
 
-def get_file_from_github(filepath: str) -> str:
-    """Download file content from raw.githubusercontent.com
-
-    Ref: https://developer.github.com/v3/repos/contents/#get-contents
-
-    Use basic auth:
-    https://developer.github.com/v3/auth/#basic-authentication
-
-    Requires GITHUB_USER and GITHUB_TOKEN env vars
-    """
-    GITHUB_API = "https://api.github.com/"
-
-    resp = send_http_request(urllib.parse.urljoin(GITHUB_API, "repos/" + filepath),
-                             method="GET",
-                             auth={
-                                 "user": environ["GITHUB_USER"],
-                                 "pass": environ["GITHUB_TOKEN"],
-                             })
-
-    return base64.standard_b64decode(resp.text["content"])
-
-
 def send_http_request(url: str, method: str="POST", data: Union[list, None]=None, headers: Mapping={}, auth: Mapping={}) -> Response:
 
     method = method.upper()
@@ -172,15 +150,33 @@ def publish_to_sns_topic(sns_topic: str, subject: str, content: dict) -> Respons
 
 
 def from_link_to_jekyll_md(link):
-    """Translate page URL to Markdown file in Jekyll codebase."""
+    """Translate URL blog article to Markdown file in Jekyll codebase."""
 
-    github_path = "{}/{}/{}".format(environ["GITHUB_USER"],
-                                    environ["GITHUB_PROJECT"],
-                                    environ["GITHUB_BRANCH"])
+    return "{}/{}/contents/_posts/{}".format(environ["GITHUB_USER"],
+                                             environ["GITHUB_PROJECT"],
+                                             urllib.parse.urlsplit(link).path
+                                                 .strip("/")
+                                                 .replace("/", "-")
+                                                 .replace(".html", ".md"))
 
-    return "{}/_posts/{}".format(github_path,
-                                 urllib.parse
-                                 .urlsplit(link).path
-                                 .lstrip("/")
-                                 .replace("/", "-")
-                                 .replace(".html", ".md"))
+
+def get_file_from_github(filepath: str) -> str:
+    """Download file content from raw.githubusercontent.com
+
+    Ref: https://developer.github.com/v3/repos/contents/#get-contents
+
+    Use basic auth:
+    https://developer.github.com/v3/auth/#basic-authentication
+
+    Requires GITHUB_USER and GITHUB_TOKEN env vars
+    """
+    GITHUB_API = "https://api.github.com/"
+
+    resp = send_http_request(urllib.parse.urljoin(GITHUB_API, "repos/" + filepath),
+                             method="GET",
+                             auth={
+                                 "user": environ["GITHUB_USER"],
+                                 "pass": environ["GITHUB_TOKEN"],
+                             })
+
+    return base64.standard_b64decode(resp.text["content"])
