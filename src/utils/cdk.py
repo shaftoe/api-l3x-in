@@ -10,14 +10,11 @@ from aws_cdk import (
 )
 
 
-with open("VERSION") as f:
-    VERSION = f.read().rstrip()
-
-
 DEFAULT_TIMEOUT       = core.Duration.seconds(30)  # pylint: disable=no-value-for-parameter
 DEFAULT_RUNTIME       = aws_lambda.Runtime.PYTHON_3_8
 DEFAULT_LOG_RETENTION = aws_logs.RetentionDays.ONE_WEEK
 DEFAULT_MEM_SIZE      = 256  # https://forums.aws.amazon.com/thread.jspa?threadID=262547 128mb sometimesis not enough
+DEFAULT_ENV_REQUIRED  = ["LAMBDA_FUNCTIONS_LOG_LEVEL", "VERSION"]
 
 
 def code_from_path(path: str) -> aws_lambda.Code:
@@ -35,8 +32,9 @@ def get_lambda(scope: core.Construct, id: str, code: Union[aws_lambda.Code, str]
 
     _code = code if isinstance(code, aws_lambda.Code) else code_from_path(path=code)
 
-    if "VERSION" not in environment:
-        environment["VERSION"] = VERSION
+    for required in DEFAULT_ENV_REQUIRED:
+        if required not in environment:
+            environment[required] = environ[required]
 
     return aws_lambda.Function(
             scope,
