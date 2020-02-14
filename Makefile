@@ -66,9 +66,7 @@ diff: requirements clean
 
 clean:
 	@printf '$(GREEN)$(BOLD)### Cleanup local Python caches$(CLR)\n'
-	python bin/cleanup_cache.py src/ bin/
-	@printf '$(GREEN)$(BOLD)### Cleanup local Python `pyc` files$(CLR)\n'
-	find . -iname "*.pyc" -type f -delete
+	python bin/cleanup_cache.py src/
 
 run-tests:
 	@printf '$(RED)FIXME: no test runner available$(CLR)\n'

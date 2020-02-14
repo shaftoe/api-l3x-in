@@ -4,6 +4,12 @@
 
 Source code that powers REST APIs at <https://api.l3x.in/>
 
+## Setup
+
+```bash
+make all
+```
+
 ## Architecture
 
 AWS CDK [man app](src/cdk.py) and [stacks](src/stacks) are responsible for deploying/destroying all the things, no interaction whatsoever needed via the web console.
