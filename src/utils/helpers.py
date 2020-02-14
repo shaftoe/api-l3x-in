@@ -29,7 +29,6 @@ def format_message(message: dict, template: str) -> str:
 
     Log.debug("### Formatted message ###")
     Log.debug(fmt_message)
-    Log.debug("#########################")
     Log.debug("Formatting message completed")
 
     return fmt_message
@@ -56,7 +55,22 @@ def import_non_stdlib_module(module: str):
     return mod
 
 
+def validate_url(url: str):
+    """
+    :throws HandledError:
+
+    FIXME: improve validation for netloc and path, ref: https://stackoverflow.com/a/38020041/2274124
+    """
+    Log.debug("Validating URL string %s" % url)
+    result = urllib.parse.urlparse(url)
+
+    if not all([result.scheme in ["file", "http", "https"], result.netloc, result.path]):
+        raise HandledError(message="URL invalid: {}".format(url))
+
+
 def send_http_request(url: str, method: str="POST", data: Union[list, None]=None, headers: Mapping={}, auth: Mapping={}) -> Response:
+
+    validate_url(url)
 
     method = method.upper()
 
