@@ -21,20 +21,29 @@ The _stack_ package includes the CDK code required for deployment (in `__init__.
 ## Project code structure
 
 ```bash
-src/
-│ # Main CDK application
-├── cdk.py
+.
+│ # CLI utilities
+├── bin/
 │
-│ # CDK stacks
-├── stacks
+├── src/
+│   │ # Main CDK application
+│   ├── cdk.py
 │   │
-│   ├── <stack_1>
-│   │   ├── __init__.py  # CDK resources
-│   │   └── ...          # all the rest, including Lambda code, Lambda Layers packages, etc.
+│   │ # CDK stacks
+│   ├── stacks
+│   │   │
+│   │   ├── <stack_1>
+│   │   │   ├── __init__.py  # CDK resources
+│   │   │   ├── ...          # all the rest, including Lambda code, Lambda Layers packages, etc.
+│   │   │   └── utils -> ../../utils/
+│   │   │
+│   │   └── <stack_2>
+│   │       ├── __init__.py
+│   │       ├── ...
+│   │       └── utils -> ../../utils/
 │   │
-│   └── <stack_2>
-│       ├── __init__.py
-│       └── ...
+│   │ # Shared library
+│   └── utils/
 │
 │ # To enable contrubutions and maintainability
 ├── CHANGELOG.md
@@ -51,8 +60,8 @@ src/
 │ # ENV variables template for `config.mk` file
 ├── config.config.mk
 │
-├── test/     # Unit tests
-└── utils/    # Shared library
+│ # Unit tests
+└── test/
 ```
 
 ## Contributions / Contacts

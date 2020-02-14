@@ -5,16 +5,19 @@ Main AWS CDK app
 Docs: https://docs.aws.amazon.com/cdk/api/latest/python/
 """
 
-from os import environ as env
+### Setup environment and logging
+from os import environ
 with open("VERSION") as f:
-    env["VERSION"] = f.read().rstrip()
+    environ["VERSION"] = f.read().rstrip()
 
 from sys import stdout
 print("### api-l3x-in version ", end="")
 stdout.write("\033[1;31m") # Set red, ref https://stackoverflow.com/a/37340245/2274124
-print(env["VERSION"])
+print(environ["VERSION"])
 stdout.write("\033[0;0m") # Unset color
 
+
+### Main CDK code follows
 from aws_cdk import core
 APP = core.App()
 
