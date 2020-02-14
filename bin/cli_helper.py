@@ -1,9 +1,3 @@
 import logging
-import sys
-from os import environ
-
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-log.addHandler(ch)

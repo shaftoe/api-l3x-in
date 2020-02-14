@@ -1,9 +1,11 @@
 from os import environ
-from typing import Union
+from typing import Union, Mapping
+import base64
 import importlib
 import json
+import urllib.error
 import urllib.parse
-
+import urllib.request
 
 from . import (
     HandledError,
@@ -17,13 +19,13 @@ def format_message(message: dict, template: str) -> str:
     :param message: a dict with keys used for template formatting
     :param template: a str used as template formatter
     """
-    Log.debug("Formatting message '{}', '{}', using template '{}'".format(message, type(message), template))
+    Log.debug("Formatting message '%s', '%s', using template '%s'" % (message, type(message), template))
     try:
         fmt_message = template.format(**message)
 
     except KeyError as error:
         raise HandledError("Missing required template key "
-                           "in message dictionary: {}".format(error))
+                           "in message dictionary: %s" % error)
 
     Log.debug("### Formatted message ###")
     Log.debug(fmt_message)
@@ -34,7 +36,7 @@ def format_message(message: dict, template: str) -> str:
 
 
 def import_non_stdlib_module(module: str):
-    Log.debug("Importing non-stdlib module {}".format(module))
+    Log.debug("Importing non-stdlib module %s" % module)
 
     mod = None
 
@@ -46,10 +48,10 @@ def import_non_stdlib_module(module: str):
                            status_code=500)
 
     try:
-        Log.debug("Imported '{}' module version '{}'".format(module, mod.__version__))
+        Log.debug("Imported '%s' module version '%s'" % (module, mod.__version__))
 
     except AttributeError:
-        Log.debug("Imported '{}' module (missing __version__)".format(module))
+        Log.debug("Imported '%s' module (missing __version__)" % module)
 
     return mod
 
@@ -57,65 +59,99 @@ def import_non_stdlib_module(module: str):
 def get_file_from_github(filepath: str) -> str:
     """Download file content from raw.githubusercontent.com
 
+    Ref: https://developer.github.com/v3/repos/contents/#get-contents
+
     Use basic auth:
     https://developer.github.com/v3/auth/#basic-authentication
 
     Requires GITHUB_USER and GITHUB_TOKEN env vars
     """
-    requests_auth = import_non_stdlib_module("requests.auth")
+    GITHUB_API = "https://api.github.com/"
 
-    GITHUB_URL = "https://github.com"
-
-    return send_http_request(urllib.parse.urljoin(GITHUB_URL, filepath),
+    resp = send_http_request(urllib.parse.urljoin(GITHUB_API, "repos/" + filepath),
                              method="GET",
-                             auth = requests_auth.HTTPBasicAuth(
-                                 environ["GITHUB_USER"],
-                                 environ["GITHUB_TOKEN"])).text
+                             auth={
+                                 "user": environ["GITHUB_USER"],
+                                 "pass": environ["GITHUB_TOKEN"],
+                             })
+
+    return base64.standard_b64decode(resp.text["content"])
 
 
-def send_http_request(url: str, method: str="POST", data: Union[list, None]=None, headers: dict={}, auth=None) -> Response:
+def send_http_request(url: str, method: str="POST", data: Union[list, None]=None, headers: Mapping={}, auth: Mapping={}) -> Response:
 
-    # XXX: maybe reimplement using only stdlib (urllib)?
+    method = method.upper()
 
-    requests = import_non_stdlib_module('requests')
-    response = Response()
-
-    Log.debug("Sending {} request to {}".format(method, url))
+    Log.info("Handling HTTP %s request to %s" % (method, url))
 
     if headers:
-        Log.debug("Headers: {}".format(headers))
+        Log.debug("Headers: %s" % headers)
 
     if data:
-        Log.debug("Data: {}".format(data))
+        Log.debug("Data: %s" % data)
+
+        if method == "GET":
+            raise HandledError("Invalid input: GET does not support 'data'")
+
+        # https://docs.python.org/3/library/urllib.request.html#urllib.request.Request
+        Log.debug("URL-Encoding data to UTF-8")
+        data = bytes(urllib.parse.urlencode(data), encoding="UTF-8")
+
+    request = urllib.request.Request(url=url,
+                                     data=data,
+                                     headers=headers)
 
     if auth:
-        Log.debug("Enabling authentication: {}".format(auth))
+        # ref: https://stackoverflow.com/a/47200746/2274124
+        Log.debug("Enabling Basic Authentication: %s" % auth)
 
-    resp = requests.request(method=method.upper(),
-                            url=url,
-                            data=data,
-                            headers=headers,
-                            auth=auth)
+        auth_string = '{}:{}'.format(auth["user"], auth["pass"])
+        base64_string = base64.standard_b64encode(auth_string.encode('utf-8'))
+        auth_header = "Basic {}".format(base64_string.decode('utf-8'))
+        Log.debug("Authorization header: %s" % auth_header)
 
-    if resp.status_code == 200:
-        Log.info("{} to {} successful".format(method.upper(), url))
+        request.add_header("Authorization", auth_header)
 
-        response.put(resp.text)
-        return response
+    try:
+        Log.debug("Triggering HTTP %s request" % method)
+        res = urllib.request.urlopen(request)
+        Log.debug("HTTP %s request successful" % method)
 
-    else:
+    except urllib.error.HTTPError as error:
         raise HandledError(
-            message="Unexpected HTTP {} response: {}".format(method.upper(),
-                                                             resp.reason),
-            status_code=resp.status_code)
+            message="Unexpected HTTP {} response: {}".format(method,
+                                                             error.reason),
+            status_code=error.code)
+
+    content = res.read()
+
+    try:
+        Log.debug("Decoding content with utf-8")
+        content = content.decode("utf-8")
+
+    except Exception as error:
+        Log.warning("Failed decoding content bytes into utf-8")
+
+    try:
+        Log.debug("Deserializing JSON content")
+        content = json.loads(content)
+
+    except json.JSONDecodeError as error:
+        Log.warning("Deserialization failed, using 'content' as is")
+
+    response = Response()
+    response.put(content)
+
+    Log.info("Handling of %s %s successful" % (method, url))
+    return response
 
 
 def publish_to_sns_topic(sns_topic: str, subject: str, content: dict) -> Response:
     """
     :returns: SNS MessageId
     """
-    Log.info("Sending message with subject '{}' to SNS topic {}".format(subject, sns_topic))
-    Log.debug("Message: {}".format(content))
+    Log.info("Sending message with subject '%s' to SNS topic %s" % (subject, sns_topic))
+    Log.debug("Message: %s" % content)
 
     boto3 = import_non_stdlib_module("boto3")
     sns = boto3.client("sns")
