@@ -86,8 +86,9 @@ def send_http_request(url: str, method: str="POST", data: Union[list, None]=None
             raise HandledError("Invalid input: GET does not support 'data'")
 
         # https://docs.python.org/3/library/urllib.request.html#urllib.request.Request
-        Log.debug("URL-Encoding data to UTF-8")
-        data = bytes(urllib.parse.urlencode(data), encoding="UTF-8")
+        if not isinstance(data, bytes):
+            Log.debug("URL-Encoding data to UTF-8")
+            data = bytes(urllib.parse.urlencode(data), encoding="utf-8")
 
     request = urllib.request.Request(url=url,
                                      data=data,

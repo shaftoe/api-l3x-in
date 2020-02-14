@@ -1,4 +1,5 @@
-from os import environ
+from os import environ as env
+import json
 import urllib.parse
 
 import utils
@@ -29,8 +30,11 @@ def post_status(content: utils.LambdaEvent) -> str:
 
     return helpers.send_http_request(
         url=DEVTO_PUBLISH_URL,
-        data=data,
-        headers={"api-key": environ["DEVTO_API_KEY"]}).text
+        data=bytes(json.dumps(data), encoding="utf-8"),
+        headers={
+            "api-key": env["DEVTO_API_KEY"],
+            "Content-Type": "application/json",
+    }).text
 
 
 def handler(event, context) -> utils.Response:
