@@ -34,13 +34,11 @@ The _stack_ package includes the CDK code required for deployment (in `__init__.
 │   │   │
 │   │   ├── <stack_1>
 │   │   │   ├── __init__.py  # CDK resources
-│   │   │   ├── ...          # all the rest, including Lambda code, Lambda Layers packages, etc.
-│   │   │   └── utils -> ../../utils/
+│   │   │   └── ...          # all the rest, including Lambda code, Lambda Layers packages, etc.
 │   │   │
 │   │   └── <stack_2>
 │   │       ├── __init__.py
-│   │       ├── ...
-│   │       └── utils -> ../../utils/
+│   │       └── ...
 │   │
 │   │ # Shared library
 │   └── utils/
