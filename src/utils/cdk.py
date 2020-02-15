@@ -24,6 +24,7 @@ def code_from_path(path: str) -> aws_lambda.Code:
         exclude=[
             "**__pycache__",
             "*.pyc",
+            "cdk.py",
         ],
     )
 
