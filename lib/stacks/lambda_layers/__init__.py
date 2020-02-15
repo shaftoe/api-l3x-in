@@ -35,7 +35,7 @@ class LambdaLayersStack(core.Stack):
             return aws_lambda.LayerVersion(
                 self,
                 "lambda-layer-python3-{}".format(name),
-                code=code_from_path(path="src/stacks/{}/layers/{}".format(id, name)),
+                code=code_from_path(path="lib/stacks/{}/layers/{}".format(id, name)),
                 compatible_runtimes=[
                     aws_lambda.Runtime.PYTHON_3_7,
                     DEFAULT_RUNTIME,

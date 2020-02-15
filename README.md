@@ -12,9 +12,9 @@ make all
 
 ## Architecture
 
-AWS CDK [man app](src/cdk.py) and [stacks](src/stacks) are responsible for deploying/destroying all the things, no interaction whatsoever needed via the web console.
+AWS CDK [man app](lib/cdk.py) and [stacks](lib/stacks) are responsible for deploying/destroying all the things, no interaction whatsoever needed via the web console.
 
-Each applications live in a dedicated Python package under the [`src/stacks`](src/stacks) folder.
+Each applications live in a dedicated Python package under the [`lib/stacks`](lib/stacks) folder.
 
 The _stack_ package includes the CDK code required for deployment (in `__init__.py`) and the `.py` Lambda files.
 
@@ -25,7 +25,7 @@ The _stack_ package includes the CDK code required for deployment (in `__init__.
 │ # CLI utilities
 ├── bin/
 │
-├── src/
+├── lib/
 │   │ # Main CDK application
 │   ├── cdk.py
 │   │

@@ -24,7 +24,7 @@ def post_status(content: utils.LambdaEvent) -> str:
             "body_markdown": helpers.get_file_from_github(
                                  helpers.from_link_to_jekyll_md(content["url"])),
         },
-        "published": False,
+        "published": True,
         "canonical_url": content["url"],
     }
 

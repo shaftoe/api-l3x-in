@@ -26,7 +26,7 @@ class SocialPublishStack(core.Stack):
             "topic-{}".format(id),
         )
 
-        code = code_from_path(path='src/stacks/{}/lambda'.format(id))
+        code = code_from_path(path='lib/stacks/{}/lambda'.format(id))
 
         # PUBLISH lambda
         lambda_publish_to_social = get_lambda(

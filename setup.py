@@ -19,8 +19,8 @@ setuptools.setup(
 
     author="Alexander Fortin",
 
-    package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
+    package_dir={"": "lib"},
+    packages=setuptools.find_packages(where="lib"),
 
     install_requires=[
         "aws-cdk.core",

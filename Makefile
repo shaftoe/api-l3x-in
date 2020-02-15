@@ -66,7 +66,7 @@ diff: requirements clean
 
 clean:
 	@printf '$(GREEN)$(BOLD)### Cleanup local Python caches$(CLR)\n'
-	python bin/cleanup_cache.py src/
+	python bin/cleanup_cache.py lib/
 
 run-tests:
 	@printf '$(RED)FIXME: no test runner available$(CLR)\n'

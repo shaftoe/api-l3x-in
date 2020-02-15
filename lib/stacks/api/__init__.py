@@ -21,7 +21,7 @@ class ApiStack(core.Stack):
         my_lambda = get_lambda(
             self,
             id,
-            code='src/stacks/{}/{}'.format(id, id),
+            code='lib/stacks/{}/{}'.format(id, id),
             handler='main.handler',
             environment={
                 'CORS_ALLOW_ORIGIN': env['CORS_ALLOW_ORIGIN'],
