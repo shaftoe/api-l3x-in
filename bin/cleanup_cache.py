@@ -11,7 +11,7 @@ def cleanup_cache_files(root_path: str) -> None:
         for filename in filenames:
             if filename.endswith(".pyc"):
                 pyc_file = "{}/{}".format(dirpath, filename)
-                cli_helper.log.info("Removing file %s" % pyc_file)
+                cli_helper.log.info("Removing file   %s" % pyc_file)
                 remove(pyc_file)
 
         if any(map(lambda x: dirpath.endswith(x), ["__pycache__", ".egg-info"])):

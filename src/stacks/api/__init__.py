@@ -27,7 +27,7 @@ class ApiStack(core.Stack):
                 'CORS_ALLOW_ORIGIN': env['CORS_ALLOW_ORIGIN'],
                 'PUSHOVER_TOKEN': env['PUSHOVER_TOKEN'],
                 'PUSHOVER_USERKEY': env['PUSHOVER_USERKEY'],
-                'LAMBDA_FUNCTIONS_LOG_LEVEL': env.get('LAMBDA_FUNCTIONS_LOG_LEVEL', 'INFO'),
+                'LAMBDA_FUNCTIONS_LOG_LEVEL': 'INFO',
             },
             layers=[
                 lambda_layers['requests_oauthlib'],
