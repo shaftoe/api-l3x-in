@@ -1,4 +1,4 @@
-from typing import (Callable, Union)
+from typing import (Callable, Union, Mapping)
 import json
 from sys import getsizeof
 
@@ -137,20 +137,38 @@ class SnsEventHandler(EventHandler):
 
 class ApiGatewayEventHandler(EventHandler):
 
-    def __init__(self, name: str, event: LambdaEvent, context: LambdaContext, action: Callable[[dict], None]):
-        """ApiGateway-triggered Lambda event handler"""
-        super().__init__(name, event, context, action)
+    def __init__(self, name: str, event: LambdaEvent, context: LambdaContext, router_map: Mapping):
+        """ApiGateway-triggered Lambda event handler
+
+        router_map is a dictionary with routes as key (e.g. "POST /contact) and actions (callable)
+        as value
+
+        Input:
+        https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+
+        Output:
+        https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
+        """
+        super().__init__(name, event, context, action=lambda: None)
+
+        Log.debug("Setting router map to {}%s", router_map)
+        self._router_map = router_map
 
     def pre_action(self) -> None:
         try:
-            method, path = self._event["httpMethod"], self._event["path"]
-            Log.info("Processing HTTP {} request for path {}".format(method, path))
+            method, path = self._event["httpMethod"].upper(), \
+                           self._event["path"].lower()
+            Log.info("Processing HTTP request: {}%s {}%s", method, path)
 
         except KeyError as error:
             raise HandledError("Missing 'httpMethod' or 'path' in event")
 
-        route = "{} {}".format(self._event.get("httpMethod", "").upper(),
-                               self._event.get("path", "").lower())
+        route = "{} {}".format(method, path)
 
-        Log.debug("Adding 'route' key to event object with value '{}'".format(route))
+        self._action = self._router_map.get(route,
+                                            lambda evt: HandledError(
+                                                message="route {} not found".format(evt["route"]),
+                                                status_code=404))
+
+        Log.debug("Adding 'route' key to event object with value '{}%s'", route)
         self._event["route"] = route

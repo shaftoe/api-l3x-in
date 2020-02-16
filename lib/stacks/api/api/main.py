@@ -1,6 +1,4 @@
 import json
-import logging
-from typing import Callable
 from os import environ as env
 
 import utils
@@ -8,28 +6,12 @@ import utils.handlers as handlers
 import utils.helpers as helpers
 
 
-PUSHOVER_API_ENDPOINT = "https://api.pushover.net/1/messages.json"
-
-
-def _send_msg_to_pushover(title: str, payload: str) -> str:
-    """Send payload as message to Pushover API."""
-    utils.Log.info("Delivering message via Pushover")
-
-    data = {
-        "token": env["PUSHOVER_TOKEN"],
-        "user": env["PUSHOVER_USERKEY"],
-        "message": payload,
-        "title": title,
-    }
-
-    return helpers.send_http_request(url=PUSHOVER_API_ENDPOINT,
-                                     data=data,
-                                     method="POST").text
+LAMBDA_NOTIFICATIONS = env["LAMBDA_NOTIFICATIONS"]
 
 
 def contact(event: utils.LambdaEvent) -> str:
     """
-    Send event payload to Pushover for delivery.
+    Send event payload to Notifications lambda for delivery.
 
     Expects these keys in event mapping:
 
@@ -40,7 +22,7 @@ def contact(event: utils.LambdaEvent) -> str:
     """
     body = event["body"]
 
-    utils.Log.debug("Processing body payload: %s" % body)
+    utils.Log.debug("Processing body payload: {}%s", body)
 
     try:
         utils.Log.debug("Loading JSON content from body")
@@ -53,34 +35,21 @@ Desc: {description}
 """.format(**json.loads(body))
 
     except (TypeError, json.JSONDecodeError) as error:
-        raise utils.HandledError("JSON body is malformatted: {}".format(error))
+        raise utils.HandledError("JSON body is malformatted: %s" % error)
 
     except KeyError as error:
-        raise utils.HandledError("Missing JSON key: {}".format(error))
+        raise utils.HandledError("Missing JSON key: %s" % error)
 
     utils.Log.debug("### Message content below ###")
     utils.Log.debug(msg)
     utils.Log.debug("#############################")
 
-    return _send_msg_to_pushover(title="New /contact submission received",
-                                 payload=msg)
-
-
-def router(event: utils.LambdaEvent) -> str:
-    """Call routed action.
-
-    XXX: evaluate relocation to "utils" module for reusal
-    """
-
-    ACTIONS_MAP = {
-        "POST /contact": contact,
-    }
-
-    return ACTIONS_MAP.get(event["route"],
-                           lambda x: utils.HandledError(
-                               message="{} not found".format(x["route"]),
-                               status_code=404)) \
-                            (event)
+    return helpers.invoke_lambda(
+        name=LAMBDA_NOTIFICATIONS,
+        payload={
+            "title": "New /contact submission received",
+            "payload": msg,
+        }).text
 
 
 def handler(event, context) -> utils.Response:
@@ -88,8 +57,12 @@ def handler(event, context) -> utils.Response:
 
     Public HTTPS REST API entry point
     """
+    router_map = {
+        "POST /contact": contact,
+    }
+
     return handlers.ApiGatewayEventHandler(name="api",
                                            event=utils.LambdaEvent(event),
                                            context=utils.LambdaContext(context),
-                                           action=router,
+                                           router_map=router_map,
                                            ).response

@@ -23,6 +23,7 @@ APP = core.App()
 
 from stacks.api import ApiStack
 from stacks.lambda_layers import LambdaLayersStack
+from stacks.notifications import NotificationsStack
 from stacks.publish_to_social import SocialPublishStack
 
 LAYERS_STACK = LambdaLayersStack(
@@ -34,10 +35,19 @@ LAYERS_STACK = LambdaLayersStack(
     },
 )
 
+NOTIFICATIONS_STACK = NotificationsStack(
+    APP,
+    'notifications',
+    tags={
+        'Managed': 'cdk',
+        'Name': 'notifications',
+    },
+)
+
 ApiStack(
     APP,
     'api',
-    lambda_layers=LAYERS_STACK.layers,
+    lambda_notifications=NOTIFICATIONS_STACK.pushover,
     tags={
         'Managed': 'cdk',
         'Name': 'api',
