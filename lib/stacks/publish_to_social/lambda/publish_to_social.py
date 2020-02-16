@@ -10,7 +10,7 @@ SNS_TOPIC = environ["SNS_TOPIC"]
 
 def scrape_page(url: str) -> dict:
     """Scrape title and description from webpage at `url`."""
-    utils.Log.info("Scraping {} in search of title and description".format(url))
+    utils.Log.info("Scraping {}%s in search of title and description", url)
     output = {"url": url}
 
     # Fetch the content
@@ -24,19 +24,20 @@ def scrape_page(url: str) -> dict:
         "description": soup.find("meta", {"name": "description"})["content"],
     })
 
-    utils.Log.debug("output: {}".format(output))
+    utils.Log.debug("output: {}%s", output)
     utils.Log.info("Scraping completed successfully")
 
     return output
 
 
 def build_message(url: str, disable: list) -> str:
-    utils.Log.debug("Building message from source {}".format(url))
+    """Build message from url source."""
+    utils.Log.debug("Building message from source {}%s", url)
 
     message = scrape_page(url)
     message["disable"] = disable
 
-    utils.Log.debug("Returning message: {}".format(message))
+    utils.Log.debug("Returning message: {}%s", message)
 
     return message
 
@@ -62,17 +63,13 @@ def publish(event: dict) -> str:
         utils.Log.warning("Found 'url' key in client input, ignoring other keys")
 
         if not event["url"].startswith("https://"):
-            raise utils.HandledError("Wrong url value: '{}'".format(event["url"]))
+            raise utils.HandledError("Wrong url value: '%s'" % event["url"])
 
         content = build_message(event["url"],
                                 disable=event.get("disable", []))
 
-    elif "message" in event:
-        utils.Log.info("Found 'message' key in client input")
-        content = event["message"]
-
     else:
-        raise utils.HandledError("Missing both 'url' and 'message' keys in payload")
+        raise utils.HandledError("Missing 'url' key in payload")
 
     message_id = helpers.publish_to_sns_topic(
         sns_topic=SNS_TOPIC,
@@ -80,8 +77,8 @@ def publish(event: dict) -> str:
         content=content
     ).text
 
-    return "messageId '{}' with content scraped from source {} delivered successfully".format(
-        message_id, event["url"])
+    return "messageId '{}' with content scraped " \
+           "from source {} delivered successfully".format(message_id, event["url"])
 
 
 def handler(event, context) -> utils.Response:
