@@ -10,7 +10,7 @@ SNS_TOPIC = environ["SNS_TOPIC"]
 
 def scrape_page(url: str) -> dict:
     """Scrape title and description from webpage at `url`."""
-    utils.Log.info("Scraping {}%s in search of title and description", url)
+    utils.Log.info("Scraping %s in search of title and description", url)
     output = {"url": url}
 
     # Fetch the content
@@ -24,7 +24,7 @@ def scrape_page(url: str) -> dict:
         "description": soup.find("meta", {"name": "description"})["content"],
     })
 
-    utils.Log.debug("output: {}%s", output)
+    utils.Log.debug("output: %s", output)
     utils.Log.info("Scraping completed successfully")
 
     return output
@@ -32,12 +32,12 @@ def scrape_page(url: str) -> dict:
 
 def build_message(url: str, disable: list) -> str:
     """Build message from url source."""
-    utils.Log.debug("Building message from source {}%s", url)
+    utils.Log.debug("Building message from source %s", url)
 
     message = scrape_page(url)
     message["disable"] = disable
 
-    utils.Log.debug("Returning message: {}%s", message)
+    utils.Log.debug("Returning message: %s", message)
 
     return message
 

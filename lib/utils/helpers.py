@@ -147,7 +147,7 @@ def invoke_lambda(name: str, payload: dict, invoke_type: str = "RequestResponse"
     boto3 = import_non_stdlib_module("boto3")
     lambda_client = boto3.client("lambda")
 
-    Log.debug("Invoking lambda {}%s", name)
+    Log.debug("Invoking lambda %s", name)
 
     lambda_resp = lambda_client.invoke(
         FunctionName=name,
@@ -163,7 +163,7 @@ def invoke_lambda(name: str, payload: dict, invoke_type: str = "RequestResponse"
         raise HandledError(message=lambda_payload,
                            status_code=lambda_resp["StatusCode"])
 
-    Log.debug("Return response with payload {}%s", lambda_payload)
+    Log.debug("Return response with payload %s", lambda_payload)
 
     response.put(lambda_payload)
     return response

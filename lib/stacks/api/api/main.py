@@ -22,7 +22,7 @@ def contact(event: utils.LambdaEvent) -> str:
     """
     body = event["body"]
 
-    utils.Log.debug("Processing body payload: {}%s", body)
+    utils.Log.debug("Processing body payload: %s", body)
 
     try:
         utils.Log.debug("Loading JSON content from body")

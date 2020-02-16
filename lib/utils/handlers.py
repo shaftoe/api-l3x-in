@@ -151,14 +151,14 @@ class ApiGatewayEventHandler(EventHandler):
         """
         super().__init__(name, event, context, action=lambda: None)
 
-        Log.debug("Setting router map to {}%s", router_map)
+        Log.debug("Setting router map to %s", router_map)
         self._router_map = router_map
 
     def pre_action(self) -> None:
         try:
             method, path = self._event["httpMethod"].upper(), \
                            self._event["path"].lower()
-            Log.info("Processing HTTP request: {}%s {}%s", method, path)
+            Log.info("Processing HTTP request: %s %s", method, path)
 
         except KeyError as error:
             raise HandledError("Missing 'httpMethod' or 'path' in event")
@@ -167,8 +167,8 @@ class ApiGatewayEventHandler(EventHandler):
 
         self._action = self._router_map.get(route,
                                             lambda evt: HandledError(
-                                                message="route {} not found".format(evt["route"]),
+                                                message="route %s not found" % evt["route"],
                                                 status_code=404))
 
-        Log.debug("Adding 'route' key to event object with value '{}%s'", route)
+        Log.debug("Adding 'route' key to event object with value '%s'", route)
         self._event["route"] = route
