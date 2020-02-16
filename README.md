@@ -6,6 +6,8 @@ Source code that powers REST APIs at <https://api.l3x.in/>
 
 ## Setup
 
+Create a `config.mk` file using [`config.example.mk`](config.example.mk) as template, then run:
+
 ```bash
 make all
 ```
