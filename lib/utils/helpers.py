@@ -149,61 +149,6 @@ def send_http_request(url: str, method: str = "POST", data: Optional[Iterable] =
     return response
 
 
-def invoke_lambda(name: str, payload: dict, invoke_type: str = "RequestResponse") -> Response:
-    """Trigger AWS Lambda execution."""
-
-    response = Response()
-
-    boto3 = import_non_stdlib_module("boto3")
-    lambda_client = boto3.client("lambda")
-
-    Log.debug("Invoking lambda %s", name)
-
-    lambda_resp = lambda_client.invoke(
-        FunctionName=name,
-        InvocationType=invoke_type,
-        Payload=json.dumps(payload))
-
-    Log.debug("Lambda invocation succesful")
-
-    Log.debug("Deserializing Lambda response Payload")
-    lambda_payload = json.load(lambda_resp["Payload"])
-
-    if not lambda_resp["StatusCode"] == 200:
-        raise HandledError(message=lambda_payload,
-                           status_code=lambda_resp["StatusCode"])
-
-    Log.debug("Return response with payload %s", lambda_payload)
-
-    response.put(lambda_payload)
-    return response
-
-
-def publish_to_sns_topic(sns_topic: str, subject: str, content: dict) -> Response:
-    """
-    :returns: SNS MessageId
-    """
-    Log.info("Sending message with subject '%s' to SNS topic %s", subject, sns_topic)
-    Log.debug("Message: %s", content)
-
-    boto3 = import_non_stdlib_module("boto3")
-    sns = boto3.client("sns")
-
-    sns_response = sns.publish(
-        TopicArn=sns_topic,
-        Message=json.dumps(content),
-        Subject=subject,
-    )
-
-    try:
-        response = Response()
-        response.put(sns_response["MessageId"])
-        return response
-
-    except KeyError:  # Hard exit to ensure Lambda is requeued for retrial
-        raise SystemExit("Missing MessageId in SNS response")
-
-
 def from_link_to_jekyll_md(link):
     """Translate URL blog article to Markdown file in Jekyll codebase."""
 

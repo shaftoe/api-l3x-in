@@ -4,6 +4,7 @@ api-l3x-in utilities library
 FIXME: Move this package into a dedicated Lambda Layer when this bug is fixed:
        https://github.com/aws/aws-cdk/issues/1972
 """
+from datetime import datetime
 from os import environ
 from typing import (
     NewType,
@@ -111,6 +112,9 @@ class Response(dict):
         self._body["message"] = str(self._error) if self._error else self._text
         if self._error:
             self._body["error"] = True
+
+        now_iso_8601 = datetime.utcnow().isoformat() + 'Z'
+        self.set_body_item("timestamp", now_iso_8601)
 
         self.update({
             "statusCode": self.status_code,

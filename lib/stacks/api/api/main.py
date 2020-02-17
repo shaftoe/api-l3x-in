@@ -2,8 +2,8 @@ import json
 from os import environ as env
 
 import utils
+import utils.aws as aws
 import utils.handlers as handlers
-import utils.helpers as helpers
 
 
 LAMBDA_NOTIFICATIONS = env["LAMBDA_NOTIFICATIONS"]
@@ -45,7 +45,7 @@ Desc: {description}
     utils.Log.debug(msg)
     utils.Log.debug("#############################")
 
-    return helpers.invoke_lambda(
+    return aws.invoke_lambda(
         name=LAMBDA_NOTIFICATIONS,
         payload={
             "title": "New /contact submission received",

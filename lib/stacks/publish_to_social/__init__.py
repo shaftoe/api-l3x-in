@@ -4,6 +4,7 @@ from typing import Iterable
 
 from aws_cdk import (
     aws_lambda,
+    aws_lambda_destinations,
     aws_logs,
     aws_sns,
     aws_sns_subscriptions,
@@ -13,6 +14,7 @@ from aws_cdk import (
 from utils.cdk import (
     get_lambda,
     code_from_path,
+    DEFAULT_LOG_RETENTION,
 )
 
 
@@ -47,12 +49,38 @@ class SocialPublishStack(core.Stack):
         )
         topic.grant_publish(lambda_publish_to_social)
 
+        # REPORT lambda and CloudWatch resources
+        report_log_group_name = "%s-reports" % id
+
+        log_group = aws_logs.LogGroup(
+            self,
+            "%s-report-log-group" % id,
+            log_group_name=report_log_group_name,
+            retention=DEFAULT_LOG_RETENTION,
+        )
+
+        report_lambda = get_lambda(
+            self,
+            "%s-report" % id,
+            code=code,
+            handler="send_report.handler",
+            environment={
+                "REPORT_LOG_GROUP_NAME": report_log_group_name,
+            }
+        )
+        log_group.grant_write(report_lambda)
+
         # SUBSCRIBE lambdas
         social_lambdas = [social.lower()
                           for social in environ.get("LAMBDA_FUNCTIONS", "")
                           .replace(" ", "")
                           .split(",")
                           if social]
+
+        for social in social_lambdas:
+            log_group.add_stream(
+                "%s-report-log-stream" % id,
+                log_stream_name=social)
 
         def build_lambda(name):
             """Builder function for aws_lambda.Function objects."""
@@ -69,7 +97,8 @@ class SocialPublishStack(core.Stack):
                              for var, value in environ.items()
                              if var.startswith(name.upper())
                              or var.startswith("LAMBDA_FUNCTIONS_")
-                             or var.startswith("GITHUB_")})
+                             or var.startswith("GITHUB_")},
+                on_success=aws_lambda_destinations.LambdaDestination(report_lambda))
 
             topic.add_subscription(aws_sns_subscriptions.LambdaSubscription(_lambda))
 

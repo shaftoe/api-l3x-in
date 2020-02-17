@@ -27,6 +27,7 @@ setuptools.setup(
         "aws-cdk.aws-apigateway",
         "aws-cdk.aws-certificatemanager",
         "aws-cdk.aws-lambda",
+        "aws-cdk.aws-lambda-destinations",
         "aws-cdk.aws-logs",
         "aws-cdk.aws-sns",
         "aws-cdk.aws-sns-subscriptions",

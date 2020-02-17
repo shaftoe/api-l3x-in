@@ -1,6 +1,7 @@
 from os import environ
 
 import utils
+import utils.aws as aws
 import utils.handlers as handlers
 import utils.helpers as helpers
 
@@ -71,7 +72,7 @@ def publish(event: dict) -> str:
     else:
         raise utils.HandledError("Missing 'url' key in payload")
 
-    message_id = helpers.publish_to_sns_topic(
+    message_id = aws.publish_to_sns_topic(
         sns_topic=SNS_TOPIC,
         subject="publish_to_social",
         content=content

@@ -47,6 +47,9 @@ class EventHandler:
         Log.info("Request of execution from Lambda '%s' version %s",
                  self._context.function_name, self._context.function_version)
 
+        Log.debug("Adding `name` key to Response: %s", self._name)
+        self._response.set_body_item(key="name", value=self._name)
+
         # Sanitize input
         Log.debug("Ensure event size is not above the limit of %d bytes", MAX_EVENT_SIZE)
 
@@ -112,7 +115,10 @@ class SnsEventHandler(EventHandler):
                                status_code=500)
 
         message_id = records[0]["Sns"]["MessageId"]
+        self._response.set_body_item("MessageId", message_id)
+
         subject = records[0]["Sns"]["Subject"]
+        self._response.set_body_item("Subject", subject)
 
         Log.info("Found SNS content in event: MessageId '%s', Subject '%s'", message_id, subject)
 

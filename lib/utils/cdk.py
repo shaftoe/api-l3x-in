@@ -31,10 +31,12 @@ def code_from_path(path: str) -> aws_lambda.Code:
     )
 
 
-def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin
-               code: Union[aws_lambda.Code, str], handler: Optional[Union[str, None]] = None,
+def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
+               code: Union[aws_lambda.Code, str],
+               handler: str,
                layers: Optional[Iterable[aws_lambda.ILayerVersion]] = None,
-               environment: Optional[Mapping] = None) -> aws_lambda:
+               environment: Optional[Mapping] = None,
+               on_success: Optional[aws_lambda.IDestination] = None) -> aws_lambda:
 
     _code = code if isinstance(code, aws_lambda.Code) else code_from_path(path=code)
 
@@ -56,6 +58,7 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
         memory_size=DEFAULT_MEM_SIZE,
         runtime=DEFAULT_RUNTIME,
         timeout=DEFAULT_TIMEOUT,
+        on_success=on_success,
     )
 
 

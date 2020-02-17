@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/shaftoe/api-l3x-in/compare/0.3.0...0.4.0) - 2020-02-22
+
+### Added
+
+* **publish-to-social:** add send_report lambda destination
+* **utils:** improve Response data handling
+* **notifications:** add notifications stack
+* add linter (Pylint) to Makefile targets
+* make Pylint happier (some docstrings still missing)
+
+### Fixes
+
+* improve README
+* remove bogus brackets from messages
+* **publish-to-social:** remove unused message event argument
+
 ## [0.3.0](https://github.com/shaftoe/api-l3x-in/compare/0.2.0...0.3.0) - 2020-02-15
 
 ### Added
