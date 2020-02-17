@@ -1,6 +1,6 @@
 from re import match
 from os import environ
-from typing import (Iterable, Mapping, Union)
+from typing import (Iterable, Mapping, Union, Optional)
 
 from aws_cdk import (
     assets,
@@ -10,11 +10,13 @@ from aws_cdk import (
 )
 
 
-DEFAULT_TIMEOUT       = core.Duration.seconds(30)  # pylint: disable=no-value-for-parameter
-DEFAULT_RUNTIME       = aws_lambda.Runtime.PYTHON_3_8
+DEFAULT_ENV_REQUIRED = ["LAMBDA_FUNCTIONS_LOG_LEVEL", "VERSION"]
 DEFAULT_LOG_RETENTION = aws_logs.RetentionDays.ONE_WEEK
-DEFAULT_MEM_SIZE      = 256  # https://forums.aws.amazon.com/thread.jspa?threadID=262547 128mb sometimesis not enough
-DEFAULT_ENV_REQUIRED  = ["LAMBDA_FUNCTIONS_LOG_LEVEL", "VERSION"]
+DEFAULT_RUNTIME = aws_lambda.Runtime.PYTHON_3_8
+DEFAULT_TIMEOUT = core.Duration.seconds(30)  # pylint: disable=no-value-for-parameter
+
+# https://forums.aws.amazon.com/thread.jspa?threadID=262547 128mb sometimesis not enough
+DEFAULT_MEM_SIZE = 256
 
 
 def code_from_path(path: str) -> aws_lambda.Code:
@@ -29,26 +31,32 @@ def code_from_path(path: str) -> aws_lambda.Code:
     )
 
 
-def get_lambda(scope: core.Construct, id: str, code: Union[aws_lambda.Code, str], handler: Union[str, None] = None, layers: Iterable[aws_lambda.ILayerVersion] = [], environment: Mapping = {}) -> aws_lambda:
+def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin
+               code: Union[aws_lambda.Code, str], handler: Optional[Union[str, None]] = None,
+               layers: Optional[Iterable[aws_lambda.ILayerVersion]] = None,
+               environment: Optional[Mapping] = None) -> aws_lambda:
 
     _code = code if isinstance(code, aws_lambda.Code) else code_from_path(path=code)
+
+    if not environment:
+        environment = {}
 
     for required in DEFAULT_ENV_REQUIRED:
         if required not in environment:
             environment[required] = environ[required]
 
     return aws_lambda.Function(
-            scope,
-            id,
-            code=_code,
-            environment=validate_environment(environment),
-            handler=handler,
-            layers=layers,
-            log_retention=DEFAULT_LOG_RETENTION,
-            memory_size=DEFAULT_MEM_SIZE,
-            runtime=DEFAULT_RUNTIME,
-            timeout=DEFAULT_TIMEOUT,
-        )
+        scope,
+        id,
+        code=_code,
+        environment=validate_environment(environment),
+        handler=handler,
+        layers=layers,
+        log_retention=DEFAULT_LOG_RETENTION,
+        memory_size=DEFAULT_MEM_SIZE,
+        runtime=DEFAULT_RUNTIME,
+        timeout=DEFAULT_TIMEOUT,
+    )
 
 
 def validate_environment(environment: Mapping) -> Mapping:

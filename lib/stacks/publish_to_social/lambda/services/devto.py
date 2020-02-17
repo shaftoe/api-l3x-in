@@ -21,8 +21,9 @@ def post_status(content: utils.LambdaEvent) -> str:
         "article": {
             "title": content["title"],
             "description": content["description"],
-            "body_markdown": helpers.get_file_from_github(
-                                 helpers.from_link_to_jekyll_md(content["url"])),
+            "body_markdown":
+                helpers.get_file_from_github(
+                    helpers.from_link_to_jekyll_md(content["url"])),
         },
         "published": True,
         "canonical_url": content["url"],
@@ -33,8 +34,8 @@ def post_status(content: utils.LambdaEvent) -> str:
         data=bytes(json.dumps(data), encoding="utf-8"),
         headers={
             "api-key": env["DEVTO_API_KEY"],
-            "Content-Type": "application/json",
-    }).text
+            "Content-Type": "application/json"}
+    ).text
 
 
 def handler(event, context) -> utils.Response:

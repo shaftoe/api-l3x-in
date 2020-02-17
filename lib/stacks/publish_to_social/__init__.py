@@ -18,7 +18,9 @@ from utils.cdk import (
 
 class SocialPublishStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, id: str, lambda_layers: Iterable[aws_lambda.ILayerVersion], **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str,  # pylint: disable=redefined-builtin
+                 lambda_layers: Iterable[aws_lambda.ILayerVersion], **kwargs) -> None:
+
         super().__init__(scope, id, **kwargs)
 
         topic = aws_sns.Topic(
@@ -46,10 +48,11 @@ class SocialPublishStack(core.Stack):
         topic.grant_publish(lambda_publish_to_social)
 
         # SUBSCRIBE lambdas
-        social_lambdas = [social.lower() for social in environ.get("LAMBDA_FUNCTIONS", "")
-                                                               .replace(" ", "")
-                                                               .split(",")
-                                                               if social]
+        social_lambdas = [social.lower()
+                          for social in environ.get("LAMBDA_FUNCTIONS", "")
+                          .replace(" ", "")
+                          .split(",")
+                          if social]
 
         def build_lambda(name):
             """Builder function for aws_lambda.Function objects."""
@@ -62,10 +65,11 @@ class SocialPublishStack(core.Stack):
                 layers=[
                     lambda_layers["requests_oauthlib"],
                 ],
-                environment={var: value for var, value in environ.items()
-                                                             if var.startswith(name.upper())
-                                                             or var.startswith("LAMBDA_FUNCTIONS_")
-                                                             or var.startswith("GITHUB_")})
+                environment={var: value
+                             for var, value in environ.items()
+                             if var.startswith(name.upper())
+                             or var.startswith("LAMBDA_FUNCTIONS_")
+                             or var.startswith("GITHUB_")})
 
             topic.add_subscription(aws_sns_subscriptions.LambdaSubscription(_lambda))
 

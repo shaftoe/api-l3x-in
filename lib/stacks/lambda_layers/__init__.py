@@ -13,6 +13,7 @@ from utils.cdk import (
 
 class LambdaLayersStack(core.Stack):
 
+    # pylint: disable=redefined-builtin
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         """
         Provide `layers` attribute as shareble mapping of available Lambda Layers.
@@ -46,6 +47,6 @@ class LambdaLayersStack(core.Stack):
 
         self.layers = {layer.lower(): build_layer(layer)
                        for layer in env.get("LAMBDA_LAYERS", "")
-                                       .replace(" ", "")
-                                       .split(",")
-                                       if layer}
+                       .replace(" ", "")
+                       .split(",")
+                       if layer}

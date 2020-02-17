@@ -14,6 +14,7 @@ from utils.cdk import (
 
 class NotificationsStack(core.Stack):
 
+    # pylint: disable=redefined-builtin
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 

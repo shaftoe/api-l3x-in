@@ -21,11 +21,11 @@ __version__ = None
 
 try:
     __version__ = environ["VERSION"]
-    Log.info("api-l3x-in utils v{}, "
-             "setting LOG_LEVEL to {}".format(__version__, LOG_LEVEL))
+    Log.info("api-l3x-in utils v%s, "
+             "setting LOG_LEVEL to %s", __version__, LOG_LEVEL)
 
 except KeyError:
-    Log.info("api-l3x-in utils, setting LOG_LEVEL to {}".format(LOG_LEVEL))
+    Log.info("api-l3x-in utils, setting LOG_LEVEL to %s", LOG_LEVEL)
     Log.warning("api-l3x-in utils: missing __version__ in environment")
 
 # Using custom types to help reasoning about Lambda metadata
@@ -97,7 +97,8 @@ class Response(dict):
 
         self.update({
             "statusCode": self.status_code,
-            "body": json.dumps({"error": str(self._error)} if self._error
-                                                           else {"message": self._text},
-                                indent=4),
+            "body": json.dumps({"error": str(self._error)}
+                               if self._error
+                               else {"message": self._text},
+                               indent=4),
         })

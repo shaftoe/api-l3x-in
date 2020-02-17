@@ -26,7 +26,8 @@ def contact(event: utils.LambdaEvent) -> str:
 
     try:
         utils.Log.debug("Loading JSON content from body")
-        utils.Log.info("json.loads should be safe to use: https://stackoverflow.com/a/45483187/2274124")
+        utils.Log.info("json.loads should be safe to use: "
+                       "https://stackoverflow.com/a/45483187/2274124")
 
         msg = """Source: {source}
 Name: {name}

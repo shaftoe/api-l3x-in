@@ -4,13 +4,19 @@ Main AWS CDK app
 
 Docs: https://docs.aws.amazon.com/cdk/api/latest/python/
 """
+from os import environ
+from sys import stdout
 
 ### Setup environment and logging
-from os import environ
 with open("VERSION") as f:
     environ["VERSION"] = f.read().rstrip()
 
-from sys import stdout
+from aws_cdk import core
+from stacks.api import ApiStack
+from stacks.lambda_layers import LambdaLayersStack
+from stacks.notifications import NotificationsStack
+from stacks.publish_to_social import SocialPublishStack
+
 print("### api-l3x-in version ", end="")
 stdout.write("\033[1;31m") # Set red, ref https://stackoverflow.com/a/37340245/2274124
 print(environ["VERSION"])
@@ -18,13 +24,7 @@ stdout.write("\033[0;0m") # Unset color
 
 
 ### Main CDK code follows
-from aws_cdk import core
 APP = core.App()
-
-from stacks.api import ApiStack
-from stacks.lambda_layers import LambdaLayersStack
-from stacks.notifications import NotificationsStack
-from stacks.publish_to_social import SocialPublishStack
 
 LAYERS_STACK = LambdaLayersStack(
     APP,

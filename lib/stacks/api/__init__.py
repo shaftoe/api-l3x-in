@@ -15,7 +15,9 @@ from utils.cdk import get_lambda
 
 class ApiStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, id: str, lambda_notifications: aws_lambda.Function, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str,  # pylint: disable=redefined-builtin
+                 lambda_notifications: aws_lambda.Function, **kwargs) -> None:
+
         super().__init__(scope, id, **kwargs)
 
         api_lambda = get_lambda(
@@ -47,13 +49,12 @@ class ApiStack(core.Stack):
         cors = aws_apigateway.CorsOptions(
             allow_methods=['POST'],
             allow_origins=[env['CORS_ALLOW_ORIGIN']]
-                            if env.get('CORS_ALLOW_ORIGIN')
-                            else aws_apigateway.Cors.ALL_ORIGINS,
-        )
+            if "CORS_ALLOW_ORIGIN" in env
+            else aws_apigateway.Cors.ALL_ORIGINS)
 
         aws_apigateway.LambdaRestApi(
             self,
-            '{}-gateway'.format(id),
+            '%s-gateway' % id,
             handler=api_lambda,
             domain_name=domain,
             default_cors_preflight_options=cors,

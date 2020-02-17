@@ -1,5 +1,4 @@
 from os import environ
-import json
 import urllib.parse
 
 import utils
@@ -21,6 +20,7 @@ MESSAGE_TEMPLATE = """New blog post:
 def post_status(message) -> str:
     """Post message to Twitter statuses/update APIs
 
+    # pylint: disable=line-too-long
     ref: https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update
     """
     return oauth.post_request_to_v1_endpoint(
