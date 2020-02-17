@@ -5,8 +5,11 @@ FIXME: Move this package into a dedicated Lambda Layer when this bug is fixed:
        https://github.com/aws/aws-cdk/issues/1972
 """
 from os import environ
-from typing import (Union, NewType)
-
+from typing import (
+    NewType,
+    Optional,
+    Union,
+)
 import json
 import logging
 import urllib.parse
@@ -14,7 +17,7 @@ import urllib.request
 
 
 LOG_LEVEL = environ.get("LAMBDA_FUNCTIONS_LOG_LEVEL", "INFO")
-Log = logging.getLogger()
+Log = logging.getLogger()  # pylint: disable=invalid-name
 Log.setLevel(LOG_LEVEL)
 
 __version__ = None
@@ -26,7 +29,7 @@ try:
 
 except KeyError:
     Log.info("api-l3x-in utils, setting LOG_LEVEL to %s", LOG_LEVEL)
-    Log.warning("api-l3x-in utils: missing __version__ in environment")
+    Log.warning("api-l3x-in utils: missing VERSION in environment")
 
 # Using custom types to help reasoning about Lambda metadata
 LambdaEvent = NewType("LambdaEvent", dict)
@@ -52,15 +55,24 @@ class Response(dict):
     Subclass `dict` to be JSON serializable: https://stackoverflow.com/a/31207881/2274124
     """
 
-    def __init__(self):
+    def __init__(self, name: Optional[str] = None):
         dict.__init__(self)
+        self._name = name
+        self._body = {"name": self._name} if self._name else {}
         self._text = None
         self._error = None
         self.update({
             "isBase64Encoded": False,
             "headers": {"Access-Control-Allow-Origin": environ.get("CORS_ALLOW_ORIGIN", "*")},
-            "body": "{}",
+            "body": self.body,
         })
+
+    @property
+    def body(self):
+        return json.dumps(self._body)
+
+    def set_body_item(self, key, value):
+        self._body[key] = value
 
     @property
     def text(self) -> Union[str, None]:
@@ -95,10 +107,12 @@ class Response(dict):
         else:
             self._text = content
 
+        self._body["http_code"] = self.status_code
+        self._body["message"] = str(self._error) if self._error else self._text
+        if self._error:
+            self._body["error"] = True
+
         self.update({
             "statusCode": self.status_code,
-            "body": json.dumps({"error": str(self._error)}
-                               if self._error
-                               else {"message": self._text},
-                               indent=4),
+            "body": self.body,
         })
