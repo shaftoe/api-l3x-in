@@ -26,7 +26,7 @@ requirements: check_python
 	@printf '$(GREEN)$(BOLD)### Install requirements$(CLR)\n'
 	pip install --quiet -e .
 
-bootstrap: requirements
+bootstrap: requirements run-tests
 	@printf '$(GREEN)$(BOLD)### Bootstrap$(CLR)\n'
 	@$(CDK) bootstrap
 
@@ -43,24 +43,24 @@ reminder:
 		| tr -d '"'
 	@printf '$(GREEN)###########################################################################$(CLR)\n'
 
-synth: requirements clean
+synth: requirements run-tests clean
 	@printf '$(GREEN)### Synthesizing stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) synth $(CDK_STACKS)
 
-deploy: requirements clean
+deploy: requirements run-tests clean
 	@printf '$(GREEN)### Deploying stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) deploy --require-approval never $(CDK_STACKS)
 
-destroy: requirements clean
+destroy: requirements run-tests clean
 	@printf '$(RED)### Destroying stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) destroy $(CDK_STACKS)
 	@printf '$(GREEN)### Remember to remove leftovers in CloudFormation$(CLR)\n'
 
-list: requirements clean
+list: requirements run-tests clean
 	@printf '$(GREEN)### Listing available stacks$(CLR)\n'
 	@$(CDK) ls
 
-diff: requirements clean
+diff: requirements run-tests clean
 	@printf '$(GREEN)### Diff stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) diff $(CDK_STACKS)
 
@@ -69,7 +69,9 @@ clean:
 	python bin/cleanup_cache.py lib/
 
 run-tests:
-	@printf '$(RED)FIXME: no test runner available$(CLR)\n'
+	@printf '$(RED)### FIXME: no test runner available$(CLR)\n'
+	@printf '$(GREEN)### Run pylint$(CLR)\n'
+	@pylint --errors-only --ignore=layers lib/ bin/*py setup.py
 
 all: bootstrap deploy reminder
 
