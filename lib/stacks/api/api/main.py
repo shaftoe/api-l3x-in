@@ -1,12 +1,17 @@
 import json
 from os import environ as env
+from typing import Mapping
 
 import utils
 import utils.aws as aws
 import utils.handlers as handlers
 
 
-LAMBDA_NOTIFICATIONS = env["LAMBDA_NOTIFICATIONS"]
+def read_social_report(event: utils.LambdaEvent) -> Mapping:  # pylint: disable=unused-argument
+    """Get all events from CloudWatch REPORT_LOG_GROUP_NAME group."""
+    log_group_name = env["REPORT_LOG_GROUP_NAME"]
+
+    return aws.read_all_log_streams(log_group=log_group_name)
 
 
 def contact(event: utils.LambdaEvent) -> str:
@@ -20,6 +25,8 @@ def contact(event: utils.LambdaEvent) -> str:
     - email
     - description
     """
+    lambda_notifications = env["LAMBDA_NOTIFICATIONS"]
+
     body = event["body"]
 
     utils.Log.debug("Processing body payload: %s", body)
@@ -46,7 +53,7 @@ Desc: {description}
     utils.Log.debug("#############################")
 
     return aws.invoke_lambda(
-        name=LAMBDA_NOTIFICATIONS,
+        name=lambda_notifications,
         payload={
             "title": "New /contact submission received",
             "payload": msg,
@@ -60,6 +67,7 @@ def handler(event, context) -> utils.Response:
     """
     router_map = {
         "POST /contact": contact,
+        "GET /social_report": read_social_report,
     }
 
     return handlers.ApiGatewayEventHandler(name="api",

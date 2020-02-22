@@ -1,5 +1,8 @@
 from time import time
-from typing import Mapping
+from typing import (
+    Mapping,
+    Iterable,
+)
 import json
 
 from . import (
@@ -141,7 +144,7 @@ def send_event_to_logstream(log_group: str, log_stream: str, message: Mapping) -
                                    status_code=500)
 
 
-def read_log_stream(log_group: str, log_stream: str):
+def read_log_stream(log_group: str, log_stream: str) -> Iterable:
     """Return all events from log stream."""
     Log.debug("Read events from CloudWatch LogGroup %s Stream %s",
               log_group, log_stream)
@@ -153,3 +156,16 @@ def read_log_stream(log_group: str, log_stream: str):
                                  logStreamName=log_stream)
 
     return resp["events"]
+
+
+def read_all_log_streams(log_group: str) -> Mapping:
+    Log.debug("Read all events from all CloudWatch LogGroup %s Streams", log_group)
+
+    boto3 = import_non_stdlib_module("boto3")
+    client = boto3.client("logs")
+    resp = client.describe_log_streams(logGroupName=log_group)
+
+    streams = [stream["logStreamName"] for stream in resp["logStreams"]]
+
+    return {stream: read_log_stream(log_group=log_group, log_stream=stream)
+            for stream in streams}

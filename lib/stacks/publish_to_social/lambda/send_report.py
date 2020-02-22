@@ -45,7 +45,7 @@ def put_record_to_logstream(event: utils.LambdaEvent) -> str:
 def handler(event, context) -> utils.Response:
     """Lambda entry point."""
     return handlers.EventHandler(
-        name="publish_to_social",
+        name="send_report",
         event=utils.LambdaEvent(event),
         context=utils.LambdaContext(context),
         action=put_record_to_logstream,

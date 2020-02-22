@@ -16,7 +16,9 @@ from utils.cdk import get_lambda
 class ApiStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str,  # pylint: disable=redefined-builtin
-                 lambda_notifications: aws_lambda.Function, **kwargs) -> None:
+                 lambda_notifications: aws_lambda.IFunction,
+                 social_log_group: aws_logs.ILogGroup,
+                 **kwargs) -> None:
 
         super().__init__(scope, id, **kwargs)
 
@@ -31,9 +33,11 @@ class ApiStack(core.Stack):
                 'PUSHOVER_USERKEY': env['PUSHOVER_USERKEY'],
                 'LAMBDA_FUNCTIONS_LOG_LEVEL': 'INFO',
                 'LAMBDA_NOTIFICATIONS': lambda_notifications.function_name,
+                'REPORT_LOG_GROUP_NAME': social_log_group.log_group_name,
             },
         )
         lambda_notifications.grant_invoke(api_lambda)
+        social_log_group.grant(api_lambda, "logs:GetLogEvents", "logs:DescribeLogStreams")
 
         cert = aws_certificatemanager.Certificate(
             self,

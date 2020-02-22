@@ -44,23 +44,24 @@ NOTIFICATIONS_STACK = NotificationsStack(
     },
 )
 
-ApiStack(
-    APP,
-    'api',
-    lambda_notifications=NOTIFICATIONS_STACK.pushover,
-    tags={
-        'Managed': 'cdk',
-        'Name': 'api',
-    },
-)
-
-SocialPublishStack(
+PUBLISH_TO_SOCIAL_STACK = SocialPublishStack(
     APP,
     'publish-to-social',
     lambda_layers=LAYERS_STACK.layers,
     tags={
         'Managed': 'cdk',
         'Name': 'publish-to-social',
+    },
+)
+
+ApiStack(
+    APP,
+    'api',
+    lambda_notifications=NOTIFICATIONS_STACK.pushover,
+    social_log_group=PUBLISH_TO_SOCIAL_STACK.log_group,
+    tags={
+        'Managed': 'cdk',
+        'Name': 'api',
     },
 )
 

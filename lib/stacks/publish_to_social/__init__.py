@@ -49,26 +49,26 @@ class SocialPublishStack(core.Stack):
         )
         topic.grant_publish(lambda_publish_to_social)
 
-        # REPORT lambda and CloudWatch resources
+        # REPORT lambdas and CloudWatch resources
         report_log_group_name = "%s-reports" % id
 
-        log_group = aws_logs.LogGroup(
+        self.log_group = aws_logs.LogGroup(
             self,
             "%s-report-log-group" % id,
             log_group_name=report_log_group_name,
             retention=DEFAULT_LOG_RETENTION,
         )
 
-        report_lambda = get_lambda(
+        create_report_lambda = get_lambda(
             self,
-            "%s-report" % id,
+            "%s-create-report" % id,
             code=code,
             handler="send_report.handler",
             environment={
                 "REPORT_LOG_GROUP_NAME": report_log_group_name,
             }
         )
-        log_group.grant_write(report_lambda)
+        self.log_group.grant_write(create_report_lambda)
 
         # SUBSCRIBE lambdas
         social_lambdas = [social.lower()
@@ -78,8 +78,8 @@ class SocialPublishStack(core.Stack):
                           if social]
 
         for social in social_lambdas:
-            log_group.add_stream(
-                "%s-report-log-stream" % id,
+            self.log_group.add_stream(
+                "%s-%s-report-log-stream" % (id, social),
                 log_stream_name=social)
 
         def build_lambda(name):
@@ -98,7 +98,7 @@ class SocialPublishStack(core.Stack):
                              if var.startswith(name.upper())
                              or var.startswith("LAMBDA_FUNCTIONS_")
                              or var.startswith("GITHUB_")},
-                on_success=aws_lambda_destinations.LambdaDestination(report_lambda))
+                on_success=aws_lambda_destinations.LambdaDestination(create_report_lambda))
 
             topic.add_subscription(aws_sns_subscriptions.LambdaSubscription(_lambda))
 
