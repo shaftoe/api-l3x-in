@@ -171,12 +171,19 @@ def get_file_from_github(filepath: str) -> str:
     Requires GITHUB_USER and GITHUB_TOKEN env vars
     """
     github_api = "https://api.github.com/"
+    path = urllib.parse.urljoin(github_api, "repos/" + filepath)
 
-    resp = send_http_request(urllib.parse.urljoin(github_api, "repos/" + filepath),
+    Log.info("Downloading file content from %s", path)
+
+    resp = send_http_request(path,
                              method="GET",
                              auth={
                                  "user": environ["GITHUB_USER"],
                                  "pass": environ["GITHUB_TOKEN"],
                              })
 
-    return base64.standard_b64decode(resp.text["content"])
+    Log.debug("Decoding content")
+    content = base64.standard_b64decode(resp.text["content"]).decode(encoding="utf-8")
+
+    Log.debug("Returning content: %s", content)
+    return content
