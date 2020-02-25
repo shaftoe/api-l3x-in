@@ -152,12 +152,12 @@ def send_http_request(url: str, method: str = "POST", data: Optional[Iterable] =
 def from_link_to_jekyll_md(link):
     """Translate URL blog article to Markdown file in Jekyll codebase."""
 
-    return "{}/{}/contents/_posts/{}".format(environ["GITHUB_USER"],
-                                             environ["GITHUB_PROJECT"],
-                                             urllib.parse.urlsplit(link).path
-                                             .strip("/")
-                                             .replace("/", "-")
-                                             .replace(".html", ".md"))
+    return "{}/{}/contents/basedir/_posts/{}".format(environ["GITHUB_USER"],
+                                                     environ["GITHUB_PROJECT"],
+                                                     urllib.parse.urlsplit(link).path
+                                                     .strip("/")
+                                                     .replace("/", "-")
+                                                     .replace(".html", ".md"))
 
 
 def get_file_from_github(filepath: str) -> str:
