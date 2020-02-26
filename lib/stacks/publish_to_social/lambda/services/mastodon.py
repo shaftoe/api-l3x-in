@@ -7,19 +7,20 @@ import utils.handlers as handlers
 import utils.helpers as helpers
 
 
-MESSAGE_TEMPLATE = """New blog post:
-
-{description}
-
-{url}"""
-
-
 def post_status(event: utils.LambdaEvent) -> str:
     """Post status update to Mastodon
 
     Docs: https://docs.joinmastodon.org/methods/statuses/
     """
     utils.Log.info("Posting status to Mastodon")
+
+    status = f"""New blog post:
+
+{event["description"]}
+
+{helpers.tags_from_categories(event["categories"])}
+
+{event["url"]}"""
 
     return oauth.post_request_to_v2_endpoint(
         token_url=None,
@@ -28,7 +29,7 @@ def post_status(event: utils.LambdaEvent) -> str:
         client_secret=environ["MASTODON_CLIENT_SECRET"],
         auth_token=environ["MASTODON_ACCESS_TOKEN"],
         scope=["write:statuses"],
-        data={"status": helpers.format_message(event, MESSAGE_TEMPLATE)}).text
+        data={"status": status}).text
 
 
 def handler(event, context) -> utils.Response:

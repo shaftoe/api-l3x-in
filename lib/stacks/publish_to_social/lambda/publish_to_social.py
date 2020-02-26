@@ -14,18 +14,30 @@ def scrape_page(url: str) -> dict:
     utils.Log.info("Scraping %s in search of title and description", url)
     output = {"url": url}
 
-    # Fetch the content
+    utils.Log.debug("Fetching content from %s", url)
     page = helpers.send_http_request(url=url, method="GET").text
 
-    # Parse the content
+    utils.Log.debug("Parsing content with BeautifulSoup4")
     bs4 = helpers.import_non_stdlib_module("bs4")
     soup = bs4.BeautifulSoup(page, "html.parser")
+
+    categories = []
+    try:
+        utils.Log.debug("Searching for categories meta tag")
+        categories = [cat.strip(' ')
+                      for cat in soup.find("meta", {"name": "categories"})["content"].split(",")
+                      if len(cat) > 0]
+
+    except TypeError as error:
+        utils.Log.warning("Could not find any categories meta tag: %s", error)
+
     output.update({
         "title":       soup.find("title").contents[0],
+        "categories":  categories,
         "description": soup.find("meta", {"name": "description"})["content"],
     })
 
-    utils.Log.debug("output: %s", output)
+    utils.Log.debug("Parsing done. Output: %s", output)
     utils.Log.info("Scraping completed successfully")
 
     return output

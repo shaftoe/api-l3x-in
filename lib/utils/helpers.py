@@ -18,25 +18,9 @@ from . import (
 )
 
 
-def format_message(message: dict, template: str) -> str:
-    """
-    :param message: a dict with keys used for template formatting
-    :param template: a str used as template formatter
-    """
-    Log.debug("Formatting message '%s', '%s', using template '%s'",
-              message, type(message), template)
-    try:
-        fmt_message = template.format(**message)
-
-    except KeyError as error:
-        raise HandledError("Missing required template key "
-                           "in message dictionary: %s" % error)
-
-    Log.debug("### Formatted message ###")
-    Log.debug(fmt_message)
-    Log.debug("Formatting message completed")
-
-    return fmt_message
+def tags_from_categories(categories: Iterable) -> str:
+    """Return a #tag1 #tag2 kind of string from input list."""
+    return " ".join(["#%s" % cat for cat in categories])
 
 
 def import_non_stdlib_module(module: str):
