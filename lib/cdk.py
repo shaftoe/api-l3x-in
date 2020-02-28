@@ -14,6 +14,7 @@ with open("VERSION") as f:
 from aws_cdk import core
 from stacks.api import ApiStack
 from stacks.notifications import NotificationsStack
+from stacks.pocket_to_kindle import PocketToKindleStack
 from stacks.publish_to_social import SocialPublishStack
 
 print("### api-l3x-in version ", end="")
@@ -51,6 +52,16 @@ ApiStack(
     tags={
         'Managed': 'cdk',
         'Name': 'api',
+    },
+)
+
+PocketToKindleStack(
+    APP,
+    'pocket-to-kindle',
+    lambda_notifications=NOTIFICATIONS_STACK.mailjet,
+    tags={
+        'Managed': 'cdk',
+        'Name': 'pocket-to-kindle',
     },
 )
 
