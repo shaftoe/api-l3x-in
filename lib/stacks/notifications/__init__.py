@@ -28,3 +28,14 @@ class NotificationsStack(core.Stack):
                 "PUSHOVER_USERKEY": env["PUSHOVER_USERKEY"],
                 "LAMBDA_FUNCTIONS_LOG_LEVEL": "INFO",
             })
+
+        self.mailjet = get_lambda(
+            self,
+            "%s-lambda-mailjet" % id,
+            code='lib/stacks/%s/lambda' % id,
+            handler="send_to_mailjet.handler",
+            environment={
+                "MAILJET_API_KEY": env["MAILJET_API_KEY"],
+                "MAILJET_API_SECRET": env["MAILJET_API_SECRET"],
+                "MAILJET_FROM_ADDRESS": env["MAILJET_FROM_ADDRESS"],
+            })

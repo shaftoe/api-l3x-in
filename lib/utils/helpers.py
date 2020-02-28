@@ -57,7 +57,7 @@ def validate_url(url: str):
         raise HandledError(message="URL invalid: %s" % url)
 
 
-def send_http_request(url: str, method: str = "POST", data: Optional[Iterable] = None,
+def send_http_request(url: str, method: str = "POST", data: Optional[Mapping] = None,
                       headers: Optional[Mapping] = None,
                       auth: Optional[Mapping] = None) -> Response:
 
