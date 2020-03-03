@@ -6,7 +6,7 @@ from aws_cdk import (
 
 
 from utils.cdk import (
-    code_from_path,
+    get_layer,
     DEFAULT_RUNTIME,
 )
 
@@ -31,21 +31,14 @@ class LambdaLayersStack(core.Stack):
 
         super().__init__(scope, id, **kwargs)
 
-        def build_layer(name):
-            """Builder function for aws_lambda.LayerVersion objects."""
-            return aws_lambda.LayerVersion(
-                self,
-                "lambda-layer-python3-{}".format(name),
-                code=code_from_path(path="lib/stacks/{}/layers/{}".format(id, name)),
-                compatible_runtimes=[
-                    aws_lambda.Runtime.PYTHON_3_7,
-                    DEFAULT_RUNTIME,
-                ],
-                license="Apache-2.0",
-                description="Adds {} dependecy".format(name),
-            )
-
-        self.layers = {layer.lower(): build_layer(layer)
+        self.layers = {layer.lower(): get_layer(self,
+                                                f"lambda-layer-python3-{layer}",
+                                                code_path=f"lib/stacks/{id}/layers/{layer}",
+                                                description=f"Adds {layer} dependecy",
+                                                compatible_runtimes=[
+                                                    aws_lambda.Runtime.PYTHON_3_7,
+                                                    DEFAULT_RUNTIME,
+                                                ])
                        for layer in env.get("LAMBDA_LAYERS", "")
                        .replace(" ", "")
                        .split(",")

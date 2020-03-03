@@ -62,6 +62,24 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
     )
 
 
+def get_layer(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
+              code_path: str,
+              compatible_runtimes: Optional[Iterable[aws_lambda.Runtime]] = None,
+              description: Optional[str] = None) -> aws_lambda.LayerVersion:
+
+    if not compatible_runtimes:
+        compatible_runtimes = [DEFAULT_RUNTIME]
+
+    return aws_lambda.LayerVersion(
+        scope,
+        id,
+        code=code_from_path(path=code_path),
+        compatible_runtimes=compatible_runtimes,
+        license="Apache-2.0",
+        description=description,
+    )
+
+
 def validate_environment(environment: Mapping) -> Mapping:
     for var in environment:
         if not match(r'[a-zA-Z]([a-zA-Z0-9_])+', var):
