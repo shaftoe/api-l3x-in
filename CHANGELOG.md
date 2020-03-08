@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0](https://github.com/shaftoe/api-l3x-in/compare/0.4.0...0.5.0) - 2020-03-08
+
+### Added
+
+* **api:** expose publish-to-social report content via `GET /social_report`
+* **cdk:** add `get_layer` to `utils.cdk`
+* **notifications:** add `Mailjet` lambda
+* **publish-to-social:** add `populate_logstreams.py` utility script
+* **publish-to-social:** add tags to published messages
+* **utils:** add `S3EventHandler`
+* **utils:** improve `utils.aws` and `utils.cdk` libraries
+
+### Fixes
+
+* **devto:** inject original blog reference to markdown content
+* **utils:** add missing UTF-8 decoding to `get_file_from_github`
+* **utils:** update GitHub blog folder structure
+
 ## [0.4.0](https://github.com/shaftoe/api-l3x-in/compare/0.3.0...0.4.0) - 2020-02-22
 
 ### Added
@@ -12,8 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **publish-to-social:** add send_report lambda destination
 * **utils:** improve Response data handling
 * **notifications:** add notifications stack
-* add linter (Pylint) to Makefile targets
-* make Pylint happier (some docstrings still missing)
+* add linter (`Pylint`) to Makefile targets
+* make `Pylint` happier (some docstrings still missing)
 
 ### Fixes
 
