@@ -1,7 +1,10 @@
+from io import BufferedIOBase
 from time import time
 from typing import (
     Mapping,
     Iterable,
+    Optional,
+    Union,
 )
 import json
 
@@ -159,7 +162,7 @@ def read_log_stream(log_group: str, log_stream: str) -> Iterable:
 
 
 def read_all_log_streams(log_group: str) -> Mapping:
-    Log.debug("Read all events from all CloudWatch LogGroup %s Streams", log_group)
+    Log.info("Read all events from all CloudWatch LogGroup %s Streams", log_group)
 
     boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("logs")
@@ -169,3 +172,58 @@ def read_all_log_streams(log_group: str) -> Mapping:
 
     return {stream: read_log_stream(log_group=log_group, log_stream=stream)
             for stream in streams}
+
+
+def put_object_to_s3_bucket(key: str, bucket: str,
+                            body: Union[BufferedIOBase, bytes],
+                            wait: Optional[bool] = False) -> Mapping:
+    Log.info("Put key %s to S3 bucket %s", key, bucket)
+
+    boto3 = import_non_stdlib_module("boto3")
+    client = boto3.client("s3")
+
+    response = client.put_object(Body=body, Bucket=bucket, Key=key)
+
+    if wait:
+        client.get_waiter("object_exists").wait(Bucket=bucket, Key=key)
+
+    return response
+
+
+def get_object_from_s3_bucket(key: str, bucket: str) -> BufferedIOBase:
+    Log.info("Get key %s from S3 bucket %s", key, bucket)
+
+    boto3 = import_non_stdlib_module("boto3")
+    boto_exceptions = import_non_stdlib_module("botocore.exceptions")
+    client = boto3.client("s3")
+
+    try:
+        response = client.response = client.get_object(Bucket=bucket, Key=key)
+        return response.Body
+
+    except boto_exceptions.ClientError as error:
+
+        if error.response["Error"]["Code"] == "NoSuchKey":
+            raise HandledError("Key %s not found in bucket %s" % (key, bucket), status_code=404)
+
+        raise error
+
+
+def trigger_ecs_fargate_task(task: str, cluster: str,
+                             overrides: Optional[Mapping] = None) -> Mapping:
+    Log.info("Trigger Fargate task %s", task)
+
+    boto3 = import_non_stdlib_module("boto3")
+    client = boto3.client("ecs")
+
+    if overrides:
+        Log.info("Setting overrides to %s", overrides)
+    else:
+        overrides = {}
+
+    return client.run_task(
+        cluster=cluster,
+        taskDefinition=task,
+        launchType="FARGATE",
+        overrides=overrides,
+    )

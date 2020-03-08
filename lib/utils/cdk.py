@@ -4,6 +4,7 @@ from typing import (Iterable, Mapping, Union, Optional)
 
 from aws_cdk import (
     assets,
+    aws_s3,
     aws_lambda,
     aws_logs,
     core,
@@ -11,11 +12,12 @@ from aws_cdk import (
 
 
 DEFAULT_ENV_REQUIRED = ["LAMBDA_FUNCTIONS_LOG_LEVEL", "VERSION"]
+DEFAULT_S3_EXPIRATION = core.Duration.days(amount=7)  # pylint: disable=no-value-for-parameter
 DEFAULT_LOG_RETENTION = aws_logs.RetentionDays.ONE_WEEK
 DEFAULT_RUNTIME = aws_lambda.Runtime.PYTHON_3_8
 DEFAULT_TIMEOUT = core.Duration.seconds(30)  # pylint: disable=no-value-for-parameter
 
-# https://forums.aws.amazon.com/thread.jspa?threadID=262547 128mb sometimesis not enough
+# default of 128mb might not be enough: https://forums.aws.amazon.com/thread.jspa?threadID=262547
 DEFAULT_MEM_SIZE = 256
 
 
@@ -31,6 +33,7 @@ def code_from_path(path: str) -> aws_lambda.Code:
     )
 
 
+# TODO: subclass Lambda construct instead
 def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
                code: Union[aws_lambda.Code, str],
                handler: str,
@@ -62,6 +65,7 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
     )
 
 
+# TODO: subclass Layer construct instead
 def get_layer(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
               code_path: str,
               compatible_runtimes: Optional[Iterable[aws_lambda.Runtime]] = None,
@@ -77,6 +81,16 @@ def get_layer(scope: core.Construct, id: str,  # pylint: disable=redefined-built
         compatible_runtimes=compatible_runtimes,
         license="Apache-2.0",
         description=description,
+    )
+
+
+def get_bucket(scope: core.Construct, construct_id: str,  # pylint: disable=redefined-builtin,invalid-name
+               expiration: Optional[core.Duration] = DEFAULT_S3_EXPIRATION) -> aws_s3.IBucket:
+    return aws_s3.Bucket(
+        scope,
+        construct_id,
+        lifecycle_rules=[aws_s3.LifecycleRule(expiration=expiration)],
+        removal_policy=core.RemovalPolicy.DESTROY,
     )
 
 
