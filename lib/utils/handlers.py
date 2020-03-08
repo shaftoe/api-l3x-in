@@ -147,6 +147,32 @@ class SnsEventHandler(EventHandler):
                 Log.debug("%s not in '%s'", self._name, self._disable)
 
 
+class S3EventHandler(EventHandler):
+
+    def pre_action(self) -> None:
+        """https://docs.aws.amazon.com/AmazonS3/latest/dev/notification-content-structure.html"""
+        Log.info("PreProcessing S3 event")
+
+        Log.debug("Parsing event in search for S3 data")
+
+        records = self._event["Records"]
+
+        if len(records) != 1:
+            raise HandledError("S3 response 'Records' items "
+                               "is of length %d, expected 1" % len(records),
+                               status_code=500)
+
+        try:
+            s3_data = records[0]["s3"]
+            self._event["bucketName"] = s3_data["bucket"]["name"]
+            Log.debug("Found bucketName: %s", self._event["bucketName"])
+            self._event["keyName"] = s3_data["object"]["key"]
+            Log.debug("Found keyName: %s", self._event["keyName"])
+
+        except KeyError as error:
+            raise HandledError("Missing key: %s" % error, status_code=500)
+
+
 class ApiGatewayEventHandler(EventHandler):
 
     def __init__(self, name: str, event: LambdaEvent, context: LambdaContext, router_map: Mapping):
