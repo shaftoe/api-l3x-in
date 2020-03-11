@@ -3,6 +3,7 @@ from time import time
 from typing import (
     Mapping,
     Iterable,
+    List,
     Optional,
     Union,
 )
@@ -19,6 +20,8 @@ from .helpers import  import_non_stdlib_module
 
 def invoke_lambda(name: str, payload: dict, invoke_type: str = "RequestResponse") -> Response:
     """Trigger AWS Lambda execution."""
+    if invoke_type not in ("DryRun", "RequestResponse", "Event"):
+        raise HandledError(f"invalid invoke_type: {invoke_type}", status_code=400)
 
     response = Response()
 
@@ -32,18 +35,17 @@ def invoke_lambda(name: str, payload: dict, invoke_type: str = "RequestResponse"
         InvocationType=invoke_type,
         Payload=json.dumps(payload))
 
-    Log.debug("Lambda invocation succesful")
+    Log.debug("Lambda %s invocation succesful", name)
 
-    Log.debug("Deserializing Lambda response Payload")
-    lambda_payload = json.load(lambda_resp["Payload"])
+    if invoke_type in ("DryRun", "RequestResponse"):
+        Log.debug("Deserializing Lambda response Payload")
+        lambda_payload = json.load(lambda_resp["Payload"])
+        response.put(lambda_payload)
 
-    if not lambda_resp["StatusCode"] == 200:
-        raise HandledError(message=lambda_payload,
+    if not 200 <= lambda_resp["StatusCode"] < 300:
+        raise HandledError(message=f"lambda response: {lambda_resp}",
                            status_code=lambda_resp["StatusCode"])
 
-    Log.debug("Return response with payload %s", lambda_payload)
-
-    response.put(lambda_payload)
     return response
 
 
@@ -199,7 +201,7 @@ def get_object_from_s3_bucket(key: str, bucket: str) -> BufferedIOBase:
 
     try:
         response = client.response = client.get_object(Bucket=bucket, Key=key)
-        return response.Body
+        return response["Body"]
 
     except boto_exceptions.ClientError as error:
 
@@ -210,6 +212,8 @@ def get_object_from_s3_bucket(key: str, bucket: str) -> BufferedIOBase:
 
 
 def trigger_ecs_fargate_task(task: str, cluster: str,
+                             subnets: List[str], security_groups: List[str],
+                             assign_public_ip: Optional[bool] = True,
                              overrides: Optional[Mapping] = None) -> Mapping:
     Log.info("Trigger Fargate task %s", task)
 
@@ -221,9 +225,19 @@ def trigger_ecs_fargate_task(task: str, cluster: str,
     else:
         overrides = {}
 
-    return client.run_task(
+    response = client.run_task(
         cluster=cluster,
         taskDefinition=task,
         launchType="FARGATE",
+        networkConfiguration={
+            "awsvpcConfiguration": {
+                "subnets": subnets,
+                "securityGroups": security_groups,
+                "assignPublicIp": "ENABLED" if assign_public_ip else "DISABLED",
+            },
+        },
         overrides=overrides,
     )
+
+    Log.debug("Response: %s", response)
+    return response
