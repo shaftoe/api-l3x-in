@@ -160,6 +160,9 @@ def read_log_stream(log_group: str, log_stream: str) -> Iterable:
     resp = client.get_log_events(logGroupName=log_group,
                                  logStreamName=log_stream)
 
+    Log.info("Found %d events", len(resp["events"]))
+    Log.debug("Events: %s", resp["events"])
+
     return resp["events"]
 
 

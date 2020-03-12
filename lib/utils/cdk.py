@@ -12,7 +12,7 @@ from aws_cdk import (
 
 
 DEFAULT_ENV_REQUIRED = ["LAMBDA_FUNCTIONS_LOG_LEVEL", "VERSION"]
-DEFAULT_S3_EXPIRATION = core.Duration.days(amount=7)  # pylint: disable=no-value-for-parameter
+DEFAULT_S3_EXPIRATION = core.Duration.days(amount=1)  # pylint: disable=no-value-for-parameter
 DEFAULT_LOG_RETENTION = aws_logs.RetentionDays.ONE_WEEK
 DEFAULT_RUNTIME = aws_lambda.Runtime.PYTHON_3_8
 DEFAULT_TIMEOUT = core.Duration.seconds(30)  # pylint: disable=no-value-for-parameter
@@ -33,7 +33,6 @@ def code_from_path(path: str) -> aws_lambda.Code:
     )
 
 
-# TODO: subclass Lambda construct instead
 def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
                code: Union[aws_lambda.Code, str],
                handler: str,
@@ -65,7 +64,6 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
     )
 
 
-# TODO: subclass Layer construct instead
 def get_layer(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
               code_path: str,
               compatible_runtimes: Optional[Iterable[aws_lambda.Runtime]] = None,
