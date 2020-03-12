@@ -56,7 +56,7 @@ class SocialPublishStack(core.Stack):
             self,
             "%s-report-log-group" % id,
             log_group_name=report_log_group_name,
-            # NOTE: no retention defined means keep data forever
+            retention=aws_logs.RetentionDays.INFINITE,
         )
 
         create_report_lambda = get_lambda(
