@@ -56,7 +56,7 @@ class SocialPublishStack(core.Stack):
             self,
             "%s-report-log-group" % id,
             log_group_name=report_log_group_name,
-            retention=DEFAULT_LOG_RETENTION,
+            # NOTE: no retention defined means keep data forever
         )
 
         create_report_lambda = get_lambda(
