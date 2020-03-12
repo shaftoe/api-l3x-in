@@ -90,9 +90,7 @@ class SocialPublishStack(core.Stack):
                 "{}-{}".format(id, name),
                 code=code,
                 handler='services.{}.handler'.format(name),
-                layers=[
-                    lambda_layers["requests_oauthlib"],
-                ],
+                layers=[lambda_layers["requests_oauthlib"]],
                 environment={var: value
                              for var, value in environ.items()
                              if var.startswith(name.upper())

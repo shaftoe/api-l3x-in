@@ -5,10 +5,7 @@ from aws_cdk import (
 )
 
 
-from utils.cdk import (
-    get_layer,
-    DEFAULT_RUNTIME,
-)
+from utils.cdk import get_layer
 
 
 class LambdaLayersStack(core.Stack):
@@ -34,11 +31,7 @@ class LambdaLayersStack(core.Stack):
         self.layers = {layer.lower(): get_layer(self,
                                                 f"lambda-layer-python3-{layer}",
                                                 code_path=f"lib/stacks/{id}/layers/{layer}",
-                                                description=f"Adds {layer} dependecy",
-                                                compatible_runtimes=[
-                                                    aws_lambda.Runtime.PYTHON_3_7,
-                                                    DEFAULT_RUNTIME,
-                                                ])
+                                                description=f"Adds {layer} dependecy")
                        for layer in env.get("LAMBDA_LAYERS", "")
                        .replace(" ", "")
                        .split(",")
