@@ -20,7 +20,7 @@ from . import (
 
 def tags_from_categories(categories: Iterable) -> str:
     """Return a #tag1 #tag2 kind of string from input list."""
-    return " ".join(["#%s" % cat for cat in categories])
+    return " ".join("#%s" % cat for cat in categories)
 
 
 def import_non_stdlib_module(module: str):
