@@ -73,6 +73,13 @@ run-tests:
 	@printf '$(GREEN)### Run pylint$(CLR)\n'
 	@pylint --errors-only --ignore=layers lib/ bin/*py setup.py
 
+upgrade-cdk:
+	@npm update -g aws-cdk
+	@pip list --outdated --format=freeze \
+		| grep aws-cdk \
+		| cut -d = -f 1  \
+		| xargs -n1 pip install -U
+
 all: bootstrap deploy reminder
 
 local-run:
