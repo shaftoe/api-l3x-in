@@ -26,7 +26,10 @@ requirements: check_python
 	@printf '$(GREEN)$(BOLD)### Install requirements$(CLR)\n'
 	pip install --quiet -e .
 
-bootstrap: requirements run-tests
+cdk_version:
+	@printf '$(GREEN)$(BOLD)### Running CDK version $(shell cdk --version)$(CLR)\n'
+
+bootstrap: requirements run-tests cdk_version
 	@printf '$(GREEN)$(BOLD)### Bootstrap$(CLR)\n'
 	@$(CDK) bootstrap
 
@@ -43,24 +46,24 @@ reminder:
 		| tr -d '"'
 	@printf '$(GREEN)###########################################################################$(CLR)\n'
 
-synth: requirements run-tests clean
+synth: requirements run-tests clean cdk_version
 	@printf '$(GREEN)### Synthesizing stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) synth $(CDK_STACKS)
 
-deploy: requirements run-tests clean
+deploy: requirements run-tests clean cdk_version
 	@printf '$(GREEN)### Deploying stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) deploy --require-approval never $(CDK_STACKS)
 
-destroy: requirements run-tests clean
+destroy: requirements run-tests clean cdk_version
 	@printf '$(RED)### Destroying stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) destroy $(CDK_STACKS)
 	@printf '$(GREEN)### Remember to remove leftovers in CloudFormation$(CLR)\n'
 
-list: requirements run-tests clean
+list: requirements run-tests clean cdk_version
 	@printf '$(GREEN)### Listing available stacks$(CLR)\n'
 	@$(CDK) ls
 
-diff: requirements run-tests clean
+diff: requirements run-tests clean cdk_version
 	@printf '$(GREEN)### Diff stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) diff $(CDK_STACKS)
 
