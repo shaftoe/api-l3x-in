@@ -36,7 +36,7 @@ def import_non_stdlib_module(module: str):
                            status_code=500)
 
     try:
-        Log.debug("Imported '%s' module version '%s'", module, mod.__version__)
+        Log.debug("Imported '%s' module version '%s'", module, str(mod.__version__))
 
     except AttributeError:
         Log.debug("Imported '%s' module (missing __version__)", module)
