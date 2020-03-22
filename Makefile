@@ -35,15 +35,13 @@ bootstrap: requirements run-tests cdk_version
 
 reminder:
 	@printf '$(GREEN)###########################################################################\n'
-	@printf '$(GREEN)# remember to add the DNS record to enable owned domain:\n#\n'
-	@printf '$(GREEN)# $(YELLOW)$(API_DOMAIN)	$(GREEN)CNAME	$(YELLOW)'
+	@printf '$(GREEN)remember to add $(YELLOW)$(API_DOMAIN)$(GREEN) CNAME DNS record to enable owned domain:\n'
+	@printf '$(YELLOW)'
 	@aws apigateway get-domain-name \
 		--profile $(AWS_PROFILE) \
 		--domain-name $(API_DOMAIN) \
-		|	grep regionalDomainName \
-		| cut -d ':' -f 2 \
-		| tr -d ',' \
-		| tr -d '"'
+		--query "regionalDomainName" \
+		--output text
 	@printf '$(GREEN)###########################################################################$(CLR)\n'
 
 synth: requirements run-tests clean cdk_version

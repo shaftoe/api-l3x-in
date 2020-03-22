@@ -13,7 +13,6 @@ with open("VERSION") as f:
 
 from aws_cdk import core
 from stacks.api import ApiStack
-from stacks.lambda_layers import LambdaLayersStack
 from stacks.notifications import NotificationsStack
 from stacks.publish_to_social import SocialPublishStack
 
@@ -25,15 +24,6 @@ stdout.write("\033[0;0m") # Unset color
 
 ### Main CDK code follows
 APP = core.App()
-
-LAYERS_STACK = LambdaLayersStack(
-    APP,
-    'lambda-layers',
-    tags={
-        'Managed': 'cdk',
-        'Name': 'lambda-layers',
-    },
-)
 
 NOTIFICATIONS_STACK = NotificationsStack(
     APP,
@@ -47,7 +37,6 @@ NOTIFICATIONS_STACK = NotificationsStack(
 PUBLISH_TO_SOCIAL_STACK = SocialPublishStack(
     APP,
     'publish-to-social',
-    lambda_layers=LAYERS_STACK.layers,
     tags={
         'Managed': 'cdk',
         'Name': 'publish-to-social',

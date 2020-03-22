@@ -64,25 +64,29 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
     )
 
 
-def get_layer(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
-              code_path: str,
+def get_layer(scope: core.Construct,
+              layer_name: str,
+              prefix: str,
               compatible_runtimes: Optional[Iterable[aws_lambda.Runtime]] = None,
               description: Optional[str] = None) -> aws_lambda.LayerVersion:
 
     if not compatible_runtimes:
         compatible_runtimes = [DEFAULT_RUNTIME]
 
+    if not description:
+        description = f"Add {layer_name} dependency"
+
     return aws_lambda.LayerVersion(
         scope,
-        id,
-        code=code_from_path(path=code_path),
+        f"{prefix}-lambda-layer-python3-{layer_name}",
+        code=code_from_path(path=f"lib/layers/{layer_name}"),
         compatible_runtimes=compatible_runtimes,
         license="Apache-2.0",
         description=description,
     )
 
 
-def get_bucket(scope: core.Construct, construct_id: str,  # pylint: disable=redefined-builtin,invalid-name
+def get_bucket(scope: core.Construct, construct_id: str,
                expiration: Optional[core.Duration] = DEFAULT_S3_EXPIRATION) -> aws_s3.IBucket:
     return aws_s3.Bucket(
         scope,

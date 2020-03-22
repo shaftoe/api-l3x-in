@@ -1,6 +1,4 @@
 from os import environ
-from typing import Iterable
-
 
 from aws_cdk import (
     aws_lambda,
@@ -12,6 +10,7 @@ from aws_cdk import (
 )
 
 from utils.cdk import (
+    get_layer,
     get_lambda,
     code_from_path,
     DEFAULT_LOG_RETENTION,
@@ -20,8 +19,7 @@ from utils.cdk import (
 
 class SocialPublishStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, id: str,  # pylint: disable=redefined-builtin
-                 lambda_layers: Iterable[aws_lambda.ILayerVersion], **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:  # pylint: disable=redefined-builtin
 
         super().__init__(scope, id, **kwargs)
 
@@ -31,6 +29,10 @@ class SocialPublishStack(core.Stack):
         )
 
         code = code_from_path(path='lib/stacks/{}/lambda'.format(id))
+
+        # Lambda Layers
+        lambda_layers = {layer: get_layer(self, layer_name=layer, prefix=id)
+                         for layer in ("bs4", "requests_oauthlib")}
 
         # PUBLISH lambda
         lambda_publish_to_social = get_lambda(
@@ -99,7 +101,6 @@ class SocialPublishStack(core.Stack):
                 on_success=aws_lambda_destinations.LambdaDestination(create_report_lambda))
 
             topic.add_subscription(aws_sns_subscriptions.LambdaSubscription(_lambda))
-
 
         for social in social_lambdas:
             build_lambda(name=social)
