@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [0.6.0](https://github.com/shaftoe/api-l3x-in/compare/0.5.0...0.6.0) (2020-03-22)
+
+### Added
+
+* remove lambda_layers stack and bundle layers directly in stacks
+
+### Fixes
+
+* **Makefile:** add cdk_version task
+* **Makefile:** add show-loggroups target
+* **notifications:** add support for S3 attachments
+* **publish-to-social:** fix infinite retention for reports log group
+* **publish-to-social:** fix wrong log retention for report loggroup
+* **utils:** add support for multiple event types to invoke_lambda, improve trigger_ecs_fargate_task
+* **utils:** better handle 3rd-party modules versions
+* **Makefile:** add `make upgrade-cdk`
+* **utils:** add debug info to aws.read_log_stream
+* **utils:** remove unused PYTHON_3_7 compatible runtime
+* **utils:** remove useless list
+
 ## [0.5.0](https://github.com/shaftoe/api-l3x-in/compare/0.4.0...0.5.0) - 2020-03-08
 
 ### Added
