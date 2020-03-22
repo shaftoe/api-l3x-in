@@ -90,3 +90,11 @@ local-run:
 
 create-stack-scaffold:
 	# TODO
+
+# ref: https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-output.html#cli-usage-output-filter
+show-loggroups:
+	@aws --profile $(AWS_PROFILE) \
+		logs describe-log-groups \
+		--no-paginate \
+		--query 'logGroups[*].{NAME:logGroupName}' \
+		--output text
