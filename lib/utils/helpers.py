@@ -122,7 +122,7 @@ def send_http_request(url: str, method: str = "POST", data: Optional[Mapping] = 
         Log.debug("Deserializing JSON content")
         content = json.loads(content)
 
-    except json.JSONDecodeError as error:
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
         Log.warning("Deserialization failed, using 'content' as is")
 
     response = Response()
