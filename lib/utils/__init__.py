@@ -34,8 +34,7 @@ except KeyError:
 
 # Using custom types to help reasoning about Lambda metadata
 LambdaEvent = NewType("LambdaEvent", dict)
-LambdaContext = NewType("LambdaContext", object)
-
+LambdaContext = NewType("LambdaContext", object)  # https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
 
 class HandledError(Exception):
 

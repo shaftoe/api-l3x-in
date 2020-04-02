@@ -13,6 +13,7 @@ with open("VERSION") as f:
 
 from aws_cdk import core
 from stacks.api import ApiStack
+from stacks.log_report import LogReportStack
 from stacks.notifications import NotificationsStack
 from stacks.pocket_to_kindle import PocketToKindleStack
 from stacks.publish_to_social import SocialPublishStack
@@ -62,6 +63,16 @@ PocketToKindleStack(
     tags={
         'Managed': 'cdk',
         'Name': 'pocket-to-kindle',
+    },
+)
+
+LogReportStack(
+    APP,
+    'log-report',
+    lambda_notifications=NOTIFICATIONS_STACK.mailjet,
+    tags={
+        'Managed': 'cdk',
+        'Name': 'log-report',
     },
 )
 

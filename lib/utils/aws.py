@@ -74,6 +74,23 @@ def publish_to_sns_topic(sns_topic: str, subject: str, content: dict) -> Respons
         raise SystemExit("Missing MessageId in SNS response")
 
 
+def get_all_loggroups():
+    """Return list of CloudWatch LogGroups in the account."""
+    Log.debug("Retrive all LogGroups names in CloudWatch.")
+    boto3 = import_non_stdlib_module("boto3")
+    client = boto3.client("logs")
+
+    response = client.describe_log_groups()
+    groups = [lg["logGroupName"] for lg in response["logGroups"]]
+
+    if groups:
+        Log.debug("Found LogGroups: %s", ",".join(groups))
+    else:
+        Log.debug("No LogGroups found")
+
+    return groups
+
+
 def send_event_to_logstream(log_group: str, log_stream: str, message: Mapping) -> str:
     Log.debug("Send event content to CloudWatch LogGroup %s Stream %s",
               log_group, log_stream)
@@ -149,8 +166,11 @@ def send_event_to_logstream(log_group: str, log_stream: str, message: Mapping) -
                                    status_code=500)
 
 
-def read_log_stream(log_group: str, log_stream: str) -> Iterable:
-    """Return all events from log stream."""
+def read_log_stream(log_group: str, log_stream: str, start_time: Optional[int] = 0) -> Iterable:
+    """Return all events from log stream.
+
+    :param start_time: optional UNIX epoch in milliseconds
+    """
     Log.debug("Read events from CloudWatch LogGroup %s Stream %s",
               log_group, log_stream)
 
@@ -158,12 +178,26 @@ def read_log_stream(log_group: str, log_stream: str) -> Iterable:
     client = boto3.client("logs")
 
     resp = client.get_log_events(logGroupName=log_group,
-                                 logStreamName=log_stream)
+                                 logStreamName=log_stream,
+                                 startTime=start_time)
 
     Log.info("Found %d events", len(resp["events"]))
     Log.debug("Events: %s", resp["events"])
 
     return resp["events"]
+
+
+def delete_log_stream(log_group: str, log_stream: str) -> None:
+    """Delete log stream."""
+    Log.debug("Delete CloudWatch LogGroup %s Stream %s", log_group, log_stream)
+
+    boto3 = import_non_stdlib_module("boto3")
+    client = boto3.client("logs")
+
+    client.delete_log_stream(
+        logGroupName=log_group,
+        logStreamName=log_stream,
+    )
 
 
 def read_all_log_streams(log_group: str) -> Mapping:

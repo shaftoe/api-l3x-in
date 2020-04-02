@@ -36,6 +36,7 @@ def code_from_path(path: str) -> aws_lambda.Code:
 def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
                code: Union[aws_lambda.Code, str],
                handler: str,
+               timeout: Optional[core.Duration] = DEFAULT_TIMEOUT,
                layers: Optional[Iterable[aws_lambda.ILayerVersion]] = None,
                environment: Optional[Mapping] = None,
                on_success: Optional[aws_lambda.IDestination] = None) -> aws_lambda:
@@ -59,7 +60,7 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
         log_retention=DEFAULT_LOG_RETENTION,
         memory_size=DEFAULT_MEM_SIZE,
         runtime=DEFAULT_RUNTIME,
-        timeout=DEFAULT_TIMEOUT,
+        timeout=timeout,
         on_success=on_success,
     )
 
