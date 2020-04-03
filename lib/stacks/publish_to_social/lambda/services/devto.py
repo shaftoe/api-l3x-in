@@ -12,7 +12,7 @@ DEVTO_URL = "https://dev.to/"
 DEVTO_PUBLISH_URL = urllib.parse.urljoin(DEVTO_URL, "api/articles")
 
 
-def get_content_from_gh(url: str) -> Iterable[str, str]:
+def get_content_from_gh(url: str) -> Iterable[str]:
     """Fetch blog content from GitHub and inject original blog link reference."""
     raw = helpers.get_file_from_github(helpers.from_link_to_jekyll_md(url))
 
