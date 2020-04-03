@@ -37,5 +37,6 @@ class NotificationsStack(core.Stack):
             environment={
                 "MAILJET_API_KEY": env["MAILJET_API_KEY"],
                 "MAILJET_API_SECRET": env["MAILJET_API_SECRET"],
+                "MAILJET_DEFAULT_TO_ADDRESS": env["MAILJET_DEFAULT_TO_ADDRESS"],
                 "MAILJET_FROM_ADDRESS": env["MAILJET_FROM_ADDRESS"],
             })

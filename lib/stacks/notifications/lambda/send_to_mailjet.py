@@ -27,9 +27,10 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
     """Send email message via Mailjet APIs.
 
     :param event:
-      - must have "mail_to" email address key
+      - may have "mail_to" email address key (use MAILJET_DEFAULT_TO_ADDRESS from env if not)
       - may have "custom_id" key (for internal Mailjet use)
       - may have "subject" key to be used as email subject
+      - may have "text" key to be used as text content
       - may have "attachments" key (list of attachments dict metadata). E.g:
         {
             # https://www.iana.org/assignments/media-types/application/vnd.amazon.mobi8-ebook
@@ -50,7 +51,7 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
     msg = {
         "From": {"Email":env["MAILJET_FROM_ADDRESS"]},
         "TextPart": event.get("text", "no content"),
-        "To": [{"Email": event["mail_to"]}],
+        "To": [{"Email": event.get("mail_to", env["MAILJET_DEFAULT_TO_ADDRESS"])}],
         "CustomID": event.get("custom_id", "api-l3x-in"),
     }
 
