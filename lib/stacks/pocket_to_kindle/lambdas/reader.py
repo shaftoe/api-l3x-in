@@ -23,7 +23,7 @@ def _validate_article(article):
     )
 
     if any(map(lambda regex: match(regex, article["url"]), regexes)):
-        utils.Log.warning("Ignoring item_id %s, url %s", article["item_id"], article["url"])
+        utils.Log.info("Ignoring item_id %s, url %s", article["item_id"], article["url"])
         return False
 
     return True
@@ -79,7 +79,7 @@ def trigger_lambdas(event: utils.LambdaEvent) -> Mapping:  # pylint: disable=unu
     articles, since = retrieve()
 
     if not articles:
-        utils.Log.warning("Found no new articles since %d, skipping 'since' storage", since)
+        utils.Log.info("Found no new articles since %d, skipping 'since' storage", since)
         return response
 
     response["new_articles"] = [article["url"] for article in articles]

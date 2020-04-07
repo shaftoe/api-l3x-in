@@ -116,14 +116,14 @@ def send_http_request(url: str, method: str = "POST", data: Optional[Mapping] = 
         content = content.decode("utf-8")
 
     except Exception as error:  # pylint: disable=broad-except
-        Log.warning("Failed decoding content bytes into utf-8")
+        Log.debug("Failed decoding content bytes into utf-8")
 
     try:
         Log.debug("Deserializing JSON content")
         content = json.loads(content)
 
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
-        Log.warning("Deserialization failed, using 'content' as is")
+        Log.debug("Deserialization failed, using 'content' as is")
 
     response = Response()
     response.put(content)
