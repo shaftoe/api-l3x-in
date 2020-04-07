@@ -16,10 +16,10 @@ POCKET_API_ENDPOINT = "https://getpocket.com/v3/get"
 def _validate_article(article):
     """Return False if article is not valid, True otherwise."""
     regexes = (
-        r'^https://[a-zA-Z]+\.ted\.com/',
-        r'^https://[a-zA-Z]+\.twitter\.com/',
-        r'^https://[a-zA-Z]+\.vimeo\.com/',
-        r'^https://[a-zA-Z]+\.youtube\.com/',
+        r'^https://([a-zA-Z]+\.)?ted\.com/',
+        r'^https://([a-zA-Z]+\.)?twitter\.com/',
+        r'^https://([a-zA-Z]+\.)?vimeo\.com/',
+        r'^https://([a-zA-Z]+\.)?youtube\.com/',
     )
 
     if any(map(lambda regex: match(regex, article["url"]), regexes)):
