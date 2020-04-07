@@ -22,8 +22,12 @@ def _validate_article(article):
         r'^https://([a-zA-Z]+\.)?youtube\.com/',
     )
 
-    if any(map(lambda regex: match(regex, article["url"]), regexes)):
-        utils.Log.info("Ignoring item_id %s, url %s", article["item_id"], article["url"])
+    _filter = lambda regex: match(regex, article["url"])
+
+    if any(map(_filter, regexes)) or "nokindle" in article["tags"]:
+        utils.Log.info("Ignoring item_id %s, url %s, tags: %s",
+                       article["item_id"], article["url"],
+                       ",".join(article["tags"]))
         return False
 
     return True
@@ -33,8 +37,9 @@ def retrieve() -> Tuple:
     """Docs: https://getpocket.com/developer/docs/v3/retrieve"""
     articles = tuple()
     data = {
-        "consumer_key": env["POCKET_CONSUMER_KEY"],
         "access_token": env["POCKET_SECRET_TOKEN"],
+        "consumer_key": env["POCKET_CONSUMER_KEY"],
+        "detailType": "complete",
     }
 
     utils.Log.info("Fetch 'since' from storage")
@@ -65,7 +70,7 @@ def retrieve() -> Tuple:
                 "item_id": item_id,
                 "title": item["resolved_title"],
                 "url": item["resolved_url"],
-                # "tags": item.get("tags", []),  TODO, waiting for Pocket support response
+                "tags": item.get("tags", {}),
             }
             for item_id, item in pocket_items.items()
             if int(item["status"]) == 0)))  ## status 0: we filter out archived/to-be-deleted items
