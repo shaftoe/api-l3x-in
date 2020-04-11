@@ -60,7 +60,7 @@ class PocketToKindleStack(core.Stack):
                 "EPUB_BUCKET": epub_bucket.bucket_name,
             },
             layers=[get_layer(self, layer_name=layer, prefix=id)
-                    for layer in ("pandoc", "html2text")],
+                    for layer in ("pandoc", "html2text", "requests_oauthlib")],
             timeout=core.Duration.minutes(5),  # pylint: disable=no-value-for-parameter
         )
         epub_bucket.grant_write(lambda_create_epub)

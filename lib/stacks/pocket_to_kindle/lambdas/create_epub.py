@@ -14,13 +14,9 @@ import utils.helpers as helpers
 
 def create_epub(event: utils.LambdaEvent) -> str:
     """Build EPUB file from URL source and store it to S3."""
-
     utils.Log.info("Fetch content from %s", event["url"])
-    response = helpers.send_http_request(
-        event["url"],
-        method="GET",
-        # Add user-agent to avoid HTTP Forbidden from sites like `medium.com`
-        headers={"User-Agent": "Mozilla/5.0"})
+    requests = helpers.import_non_stdlib_module("requests")
+    response = requests.get(url=event["url"])
 
     utils.Log.info("Create Markdown text from %s source", event["url"])
     html2text = helpers.import_non_stdlib_module("html2text")
