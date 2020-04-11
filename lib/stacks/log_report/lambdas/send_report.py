@@ -37,13 +37,15 @@ def _create_document(own_log_group: str) -> str:
 
         for stream in streams:
             utils.Log.info("Processing stream %s", stream)
-            events = aws.read_log_stream(log_group=group, log_stream=stream, start_time=start_seconds)
+            events = aws.read_log_stream(log_group=group,
+                                         log_stream=stream,
+                                         start_time=start_seconds)
 
             if events:
                 report[group] = []
                 for event in events:
                     msg = event["message"]
-                    if any(map(msg.startswith, ["[ERR", "[WARN"])):
+                    if any(map(msg.startswith, ["ERROR", "WARN"])):
                         report[group].append(msg)
             else:
                 utils.Log.info("Deleting empty stream %s", stream)
