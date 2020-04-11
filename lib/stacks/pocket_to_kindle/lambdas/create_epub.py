@@ -1,6 +1,7 @@
 """Lambda pocket-to-kindle create_epub."""
 from datetime import datetime
 from os import environ as env
+from os import stat
 from subprocess import (run, CalledProcessError, TimeoutExpired)
 from tempfile import NamedTemporaryFile
 from uuid import uuid4
@@ -37,7 +38,7 @@ def create_epub(event: utils.LambdaEvent) -> str:
         timeout = 200
         utils.Log.info("Executing %s", shlex.join(pandoc))
         run(pandoc, input=bytes(markdown, encoding="utf-8"), check=True, timeout=timeout)
-        utils.Log.info("EPUB creation completed")
+        utils.Log.info("EPUB creation completed (%d bytes)", stat(epub.name).st_size)
 
     except TimeoutExpired:
         raise utils.HandledError("Error: pandoc execution exceeded timeout of %d seconds" % timeout,
