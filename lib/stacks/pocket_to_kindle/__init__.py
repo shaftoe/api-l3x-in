@@ -165,6 +165,7 @@ class PocketToKindleStack(core.Stack):
         container_log_group = aws_logs.LogGroup(
             self,
             f"{id}-kindlegen-container-log-group",
+            log_group_name=f"/aws/ecs/{id}",
             retention=DEFAULT_LOG_RETENTION,
             removal_policy=core.RemovalPolicy.DESTROY,
         )
@@ -177,7 +178,7 @@ class PocketToKindleStack(core.Stack):
             working_directory="/tmp",
             logging=aws_ecs.LogDrivers.aws_logs(  # pylint: disable=no-value-for-parameter
                 log_group=container_log_group,
-                stream_prefix="kindlegen-task-container",
+                stream_prefix="kindlegen",
             ),
         )
 
