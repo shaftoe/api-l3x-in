@@ -39,7 +39,8 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
                timeout: Optional[core.Duration] = DEFAULT_TIMEOUT,
                layers: Optional[Iterable[aws_lambda.ILayerVersion]] = None,
                environment: Optional[Mapping] = None,
-               on_success: Optional[aws_lambda.IDestination] = None) -> aws_lambda:
+               on_success: Optional[aws_lambda.IDestination] = None,
+               retry_attempts: Optional[int] = None) -> aws_lambda:
 
     _code = code if isinstance(code, aws_lambda.Code) else code_from_path(path=code)
 
@@ -62,6 +63,7 @@ def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-buil
         runtime=DEFAULT_RUNTIME,
         timeout=timeout,
         on_success=on_success,
+        retry_attempts=retry_attempts,
     )
 
 
