@@ -1,6 +1,8 @@
 from os import environ
 
 from aws_cdk import (
+    aws_events,
+    aws_events_targets,
     aws_lambda,
     aws_lambda_destinations,
     aws_logs,
@@ -104,3 +106,27 @@ class SocialPublishStack(core.Stack):
 
         for social in social_lambdas:
             build_lambda(name=social)
+
+        # POLLER lambda
+        lambda_poll = get_lambda(
+            self,
+            f"{id}-poller",
+            code=code,
+            handler="feed_poller.handler",
+            layers=[get_layer(self, "feedparser", id)],
+            environment={
+                "BLOG_FEED_URL": environ["BLOG_FEED_URL"],
+                "LAMBDA_PUBLISH": lambda_publish_to_social.function_name,
+            },
+            retry_attempts=0,
+        )
+        lambda_publish_to_social.grant_invoke(lambda_poll)
+
+        # CRONJOB
+        cronjob = aws_events.Rule(
+            self,
+            f"{id}-scheduled-event",
+            enabled=True,
+            schedule=aws_events.Schedule.cron(hour="0", minute="0"),  # pylint: disable=no-value-for-parameter
+        )
+        cronjob.add_target(aws_events_targets.LambdaFunction(handler=lambda_poll))

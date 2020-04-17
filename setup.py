@@ -40,6 +40,7 @@ setuptools.setup(
         "aws-cdk.aws-sns",
         "aws-cdk.aws-sns-subscriptions",
         "boto3",
+        "feedparser",
         "html2text",
         "pylint",
         "requests",
