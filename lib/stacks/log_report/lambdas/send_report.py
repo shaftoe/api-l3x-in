@@ -1,5 +1,6 @@
 from datetime import (datetime, timedelta)
 from os import environ as env
+from re import match
 
 import utils
 import utils.aws as aws
@@ -25,10 +26,12 @@ def _create_document(own_log_group: str) -> str:
     start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
     start_seconds = int(start_time.timestamp() * 1000)
 
+    utils.Log.info("Considering log events since %s", start_time)
+
     report = {}
 
     groups = [group for group in aws.get_all_loggroups()
-              if not group == own_log_group]
+              if group.startswith("/aws/") and group != own_log_group]
 
     for group in groups:
         utils.Log.info("Processing group %s", group)
@@ -45,7 +48,7 @@ def _create_document(own_log_group: str) -> str:
                 report[group] = []
                 for event in events:
                     msg = event["message"]
-                    if any(map(msg.startswith, ["ERROR", "WARN"])):
+                    if match(r"(\[)?(ERROR|WARN)", msg):
                         report[group].append(msg)
             else:
                 utils.Log.info("Deleting empty stream %s", stream)
@@ -57,6 +60,7 @@ def _create_document(own_log_group: str) -> str:
     if report:
         utils.Log.info("Found content, generating Markdown report")
         output = "# CloudWatch Logs ERR/WARN report\n\n"
+
         for group, content in report.items():
             output += f"## {group}\n\n"
             for line in content:
@@ -64,18 +68,17 @@ def _create_document(own_log_group: str) -> str:
 
         return output
 
-    utils.Log.info("Empty report, exiting without output")
-
 
 def send_report(event: utils.LambdaEvent):
     """Send report as Markdown email attachment."""
     markdown = _create_document(own_log_group=event["own_log_group"])
-    if not markdown:
-        raise utils.HandledError("Error creating Markdown content")
 
-    today = datetime.utcnow().strftime(format="%Y-%m-%d")
+    if markdown:
+        today = datetime.utcnow().strftime(format="%Y-%m-%d")
+        _send_email(subject=f"AWS CloudWatch Logs report - {today}", content=markdown)
 
-    _send_email(subject=f"AWS CloudWatch Logs report - {today}", content=markdown)
+    else:
+        utils.Log.info("Empty report, exiting without output")
 
     utils.Log.info("All done")
 
