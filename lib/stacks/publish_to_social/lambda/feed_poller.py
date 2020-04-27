@@ -13,14 +13,20 @@ def _struct_to_datetime(struct: time.struct_time) -> datetime:
     return datetime.fromtimestamp(time.mktime(struct))
 
 
+def _midnightify(date: datetime) -> datetime:
+    """Return midnightified datetime."""
+    return date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
 def _poll_new_posts() -> list:
     """Poll RSS/Atom feed and return new entries since yesterday at midnight."""
     now = datetime.utcnow()
     yesterday = now - timedelta(days=1)
 
     # Jekyll's RSS plugin adds articles dated midnight of the publishing day, so we
-    # check from yesterday at 00:00 precisely
-    yesterday_noon = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
+    # check from yesterday to today at 00:00 precisely
+    yesterday_noon = _midnightify(yesterday)
+    today_noon = _midnightify(now)
 
     utils.Log.info("Considering new entries from %s between '%s' and '%s'",
                    env["BLOG_FEED_URL"], yesterday_noon, now)
@@ -33,7 +39,7 @@ def _poll_new_posts() -> list:
     source = feedparser.parse(env["BLOG_FEED_URL"])
 
     new_posts = [entry.link for entry in reversed(source.entries)
-                 if yesterday_noon <= _struct_to_datetime(entry.published_parsed) < now]
+                 if yesterday_noon <= _struct_to_datetime(entry.published_parsed) < today_noon]
 
     if new_posts:
         utils.Log.info("Found %d new posts", len(new_posts))
@@ -49,7 +55,7 @@ def invoke_publish(_: utils.LambdaEvent):
     posts = _poll_new_posts()
 
     for index, post in enumerate(posts, start=1):
-        utils.Log.info("Triggering lambda %s with payload URL %s", env["LAMBDA_PUBLISH"], post)
+        utils.Log.warning("Triggering lambda %s with payload URL %s", env["LAMBDA_PUBLISH"], post)
         aws.invoke_lambda(env["LAMBDA_PUBLISH"], payload={"url": post})
         if index < len(posts):
             time.sleep(10)  # In case of multiple posts, delay 10 seconds to allow
