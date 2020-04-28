@@ -19,7 +19,7 @@ def _send_email(subject: str, content: str) -> utils.Response:
         invoke_type="Event")
 
 
-def _create_document(own_log_group: str) -> str:
+def _create_md_document(own_log_group: str) -> str:
     """Create Markdown report of errored logs in CloudWatch."""
     # We fetch logs from yesterday's at 00:00
     start_time = datetime.utcnow() - timedelta(days=1)
@@ -59,10 +59,10 @@ def _create_document(own_log_group: str) -> str:
 
     if report:
         utils.Log.info("Found content, generating Markdown report")
-        output = "# CloudWatch Logs ERR/WARN report\n\n"
+        output = "# CloudWatch Logs ERR/WARN report\n"
 
         for group, content in report.items():
-            output += f"## {group}\n\n"
+            output += f"\n## {group}\n\n"
             for line in content:
                 output += f"{line}\n"
 
@@ -71,7 +71,7 @@ def _create_document(own_log_group: str) -> str:
 
 def send_report(event: utils.LambdaEvent):
     """Send report as Markdown email attachment."""
-    markdown = _create_document(own_log_group=event["own_log_group"])
+    markdown = _create_md_document(own_log_group=event["own_log_group"])
 
     if markdown:
         today = datetime.utcnow().strftime(format="%Y-%m-%d")
