@@ -5,7 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [0.8.0](https://github.com/shaftoe/api-l3x-in/compare/0.7.0...0.8.0) (2020-04-03)
+## [0.9.0](https://github.com/shaftoe/api-l3x-in/compare/0.7.0...0.8.0) (2020-05-06)
+
+### Added
+
+* **pocket-to-kindle:** use requests lib to increase sources support
+* **publish-to-social:** add RSS daily polling to trigger publisher lambda
+* **utils.cdk:** add retry_attempts parameter to get_lambda
+
+### Fixes
+
+* **log-report:** better error match patterns
+* **log-report:** better format for Markdown report
+* **log-report:** use regexp to better filter logs
+* **pocket-to-kindle:** add information about epub file size in log
+* **pocket-to-kindle:** add support for tags filtering
+* **pocket-to-kindle:** add timeout to pandoc execution
+* **pocket-to-kindle:** better regexp for filtered URLs
+* **pocket-to-kindle:** rename Fargate log group and stream
+* **publish-to-social:** better time management for feed_poller
+* **utils:** better handle content in send_http_request
+* remove unnecessary warnings
+
+## [0.8.0](https://github.com/shaftoe/api-l3x-in/compare/0.7.0...0.8.0) (2020-04-03)
 
 ### Added
 
@@ -18,13 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **publish-to-social:** fix wrong type annotation in `devto.py`
 * **utils:** better handle html content in `send_http_request`
 
-# [0.7.0](https://github.com/shaftoe/api-l3x-in/compare/0.6.0...0.7.0) (2020-03-29)
+## [0.7.0](https://github.com/shaftoe/api-l3x-in/compare/0.6.0...0.7.0) (2020-03-29)
 
 ### Added
 
 * add `pocket-to-kindle` stack
 
-# [0.6.0](https://github.com/shaftoe/api-l3x-in/compare/0.5.0...0.6.0) (2020-03-22)
+## [0.6.0](https://github.com/shaftoe/api-l3x-in/compare/0.5.0...0.6.0) (2020-03-22)
 
 ### Added
 
