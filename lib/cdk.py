@@ -15,6 +15,7 @@ from aws_cdk import core
 from stacks.api import ApiStack
 from stacks.log_report import LogReportStack
 from stacks.notifications import NotificationsStack
+from stacks.pagespeed import PageSpeedStack
 from stacks.pocket_to_kindle import PocketToKindleStack
 from stacks.publish_to_social import SocialPublishStack
 
@@ -45,11 +46,21 @@ PUBLISH_TO_SOCIAL_STACK = SocialPublishStack(
     },
 )
 
+PAGESPEED_STACK = PageSpeedStack(
+    APP,
+    'pagespeed',
+    tags={
+        'Managed': 'cdk',
+        'Name': 'pagespeed',
+    },
+)
+
 ApiStack(
     APP,
     'api',
     lambda_notifications=NOTIFICATIONS_STACK.pushover,
     social_log_group=PUBLISH_TO_SOCIAL_STACK.log_group,
+    pagespeed_table=PAGESPEED_STACK.table,
     tags={
         'Managed': 'cdk',
         'Name': 'api',

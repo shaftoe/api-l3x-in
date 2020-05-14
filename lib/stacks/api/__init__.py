@@ -5,6 +5,7 @@ from aws_cdk import (
     assets,
     aws_apigateway,
     aws_certificatemanager,
+    aws_dynamodb,
     aws_lambda,
     aws_logs,
     core,
@@ -18,6 +19,7 @@ class ApiStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str,  # pylint: disable=redefined-builtin
                  lambda_notifications: aws_lambda.IFunction,
                  social_log_group: aws_logs.ILogGroup,
+                 pagespeed_table: aws_dynamodb.ITable,
                  **kwargs) -> None:
 
         super().__init__(scope, id, **kwargs)
@@ -33,11 +35,13 @@ class ApiStack(core.Stack):
                 'PUSHOVER_USERKEY': env['PUSHOVER_USERKEY'],
                 'LAMBDA_FUNCTIONS_LOG_LEVEL': 'INFO',
                 'LAMBDA_NOTIFICATIONS': lambda_notifications.function_name,
+                'PAGESPEED_TABLE': pagespeed_table.table_name,
                 'REPORT_LOG_GROUP_NAME': social_log_group.log_group_name,
             },
         )
         lambda_notifications.grant_invoke(api_lambda)
         social_log_group.grant(api_lambda, "logs:GetLogEvents", "logs:DescribeLogStreams")
+        pagespeed_table.grant_read_data(api_lambda)
 
         cert = aws_certificatemanager.Certificate(
             self,

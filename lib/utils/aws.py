@@ -278,3 +278,23 @@ def trigger_ecs_fargate_task(task: str, cluster: str,
 
     Log.debug("Response: %s", response)
     return response
+
+
+def scan_dynamodb_table(table_name: str):
+    """Scan DynamoDB table, return boto3 response.
+
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb.html#DynamoDB.Client.scan
+    """
+    Log.info("Scan DynamoDB table %s", table_name)
+
+    boto3 = import_non_stdlib_module("boto3")
+    client = boto3.client("dynamodb")
+
+    response = client.scan(TableName=table_name)
+
+    if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
+        raise HandledError(message="Unexpected DynamoDB return code",
+                           status_code=response["ResponseMetadata"]["HTTPStatusCode"])
+
+    Log.debug("Response: %s", response)
+    return response

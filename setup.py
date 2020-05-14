@@ -27,6 +27,7 @@ setuptools.setup(
         "aws-cdk.aws-apigateway",
         "aws-cdk.aws-certificatemanager",
         "aws-cdk.aws-cloudtrail",
+        "aws-cdk.aws-dynamodb",
         "aws-cdk.aws-ec2",
         "aws-cdk.aws-ecs",
         "aws-cdk.aws-events",
