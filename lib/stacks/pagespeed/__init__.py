@@ -45,6 +45,6 @@ class PageSpeedStack(core.Stack):
             self,
             f"{id}-scheduled-event",
             enabled=True,
-            schedule=aws_events.Schedule.cron(minute="30"),  # pylint: disable=no-value-for-parameter
+            schedule=aws_events.Schedule.cron(hour="6-16", minute="30"),  # pylint: disable=no-value-for-parameter
         )
         cronjob.add_target(aws_events_targets.LambdaFunction(handler=poller))

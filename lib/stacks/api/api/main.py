@@ -77,7 +77,7 @@ def pagespeed_report(_: utils.LambdaEvent) -> List[Dict]:
 
     errors = False
     for item in items:
-        if not 0.99 < item["latest_score_value"] <= 1:
+        if not 0.95 < item["latest_score_value"] <= 1:
             item["error"] = True
             errors = True
 
