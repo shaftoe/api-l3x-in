@@ -10,6 +10,7 @@ import utils.handlers as handlers
 
 boto3 = helpers.import_non_stdlib_module("boto3")  # pylint: disable=invalid-name
 botocore = helpers.import_non_stdlib_module("botocore")  # pylint: disable=invalid-name
+requests = helpers.import_non_stdlib_module("requests")  # pylint: disable=invalid-name
 
 
 GOOGLE_PAGESPEED_API_URL = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
@@ -18,8 +19,6 @@ GOOGLE_PAGESPEED_API_URL = "https://www.googleapis.com/pagespeedonline/v5/runPag
 def get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[Union[str, float], str]:
     """Return average of audit responses from Google PageSpeed API"""
     helpers.validate_url(url)
-
-    requests = helpers.import_non_stdlib_module("requests")
 
     helpers.Log.info("Fetching data for %s from %s", url, GOOGLE_PAGESPEED_API_URL)
     response = requests.get(url=GOOGLE_PAGESPEED_API_URL, params={
