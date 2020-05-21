@@ -1,8 +1,8 @@
 '''Get page speed information thanks to Google Pagespeed APIs, store in DynamoDB table.'''
+from concurrent.futures import (ThreadPoolExecutor, wait)
 from os import environ as env
 from statistics import mean
 from typing import (Tuple, Union)
-import threading
 
 import utils
 import utils.helpers as helpers
@@ -60,19 +60,16 @@ def store_average_pagespeed_score(client, url: str, score: float, timestamp: str
 def fetch_and_store_all_pagespeed_scores(_: utils.LambdaEvent):
     """Hit Google Pagespeed APIs in parallel for each of the given urls. Store data to DynamoDB."""
     client = boto3.client("dynamodb")
-    threads = []
+    executor = ThreadPoolExecutor()  # by default preserves at least 5 workers for I/O bound tasks
 
     def run_job(_url):
         score, timestamp = get_average_pagespeed_score_and_timestamp(_url)
         store_average_pagespeed_score(client=client, url=_url, score=score, timestamp=timestamp)
 
-    for url in env["GOOGLE_PAGESPEED_TARGET_URLS"].replace(" ", "").split(","):
-        thread = threading.Thread(target=run_job, args=(url,))
-        thread.start()
-        threads.append(thread)
+    wait([executor.submit(run_job, url)
+          for url in env["GOOGLE_PAGESPEED_TARGET_URLS"].replace(" ", "").split(",")])
 
-    for thread in threads:
-        thread.join()
+    utils.Log.info("All done")
 
 
 def handler(event, context) -> utils.Response:
