@@ -65,8 +65,14 @@ def fetch_and_store_all_pagespeed_scores(_: utils.LambdaEvent):
         score, timestamp = get_average_pagespeed_score_and_timestamp(_url)
         store_average_pagespeed_score(client=client, url=_url, score=score, timestamp=timestamp)
 
-    wait([executor.submit(run_job, url)
-          for url in env["GOOGLE_PAGESPEED_TARGET_URLS"].replace(" ", "").split(",")])
+    results = wait([executor.submit(run_job, url)
+                    for url in env["GOOGLE_PAGESPEED_TARGET_URLS"].replace(" ", "").split(",")])
+
+    exceptions = [future.exception() for future in results.done.union(results.not_done)]
+    if any(exceptions):
+        for ex in exceptions:
+            utils.Log.debug("Thread throwed exception: %s", ex)
+        raise utils.HandledError("Error(s) while running parallel jobs", status_code=500)
 
     utils.Log.info("All done")
 
