@@ -16,7 +16,7 @@ requests = helpers.import_non_stdlib_module("requests")  # pylint: disable=inval
 GOOGLE_PAGESPEED_API_URL = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
 
 
-def get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[Union[str, float], str]:
+def get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[float, str]:
     """Return average of audit responses from Google PageSpeed API"""
     helpers.validate_url(url)
 
@@ -28,9 +28,9 @@ def get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[Union[str, floa
     response = response.json()
     helpers.Log.debug("Response content: %s", response)
 
-    score = mean(val["score"]
-                 for val in response["lighthouseResult"]["audits"].values()
-                 if val["score"] is not None)
+    score = float(mean(val["score"]
+                       for val in response["lighthouseResult"]["audits"].values()
+                       if val["score"] is not None))
     timestamp = response["analysisUTCTimestamp"]
 
     helpers.Log.info("Found values for %s: score=%f timestamp=%s", url, score, timestamp)
