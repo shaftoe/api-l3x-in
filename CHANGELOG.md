@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [0.10.0](https://github.com/shaftoe/api-l3x-in/compare/0.10.0...0.10.1) (2020-05-23)
+
+### Fixes
+
+* **pagespeed:** better exception handling for pagespeed_poller
+* **pagespeed:** fix wrong type in function signature and enforce return type
+* **pagespeed:** move requests to global namespace
+* **pagespeed:** relax pagespeed check threshold and frequency
+* **pagespeed:** replace threading with concurrent.futures.ThreadPoolExecutor
+
 ## [0.10.0](https://github.com/shaftoe/api-l3x-in/compare/0.9.0...0.10.0) (2020-05-18)
 
 ### Added
