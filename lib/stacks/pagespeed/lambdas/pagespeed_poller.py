@@ -38,7 +38,7 @@ def get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[float, str]:
     return score, timestamp
 
 
-def store_average_pagespeed_score(client, url: str, score: float, timestamp: str = "blah"):
+def store_average_pagespeed_score(client, url: str, score: float, timestamp: str):
     """Store average from Google PageSpeed API into DynamoDB."""
     client.update_item(
         TableName=env["DYNAMODB_TABLE"],
