@@ -1,3 +1,4 @@
+include defaults.mk
 include config.mk
 
 DIR := app
@@ -97,3 +98,5 @@ show-loggroups:
 		--no-paginate \
 		--query 'logGroups[*].{NAME:logGroupName}' \
 		--output text
+
+.PHONY: clean diff reminder trigger-lambda find-lambda requirements upgrade-cdk bootstrap create-stack-scaffold install_venv run-tests cdk_version deploy list show-loggroups check_python destroy local-run synth
