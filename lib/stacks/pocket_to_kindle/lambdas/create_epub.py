@@ -2,10 +2,10 @@
 from datetime import datetime
 from os import environ as env
 from os import stat
+from shlex import join
 from subprocess import (run, CalledProcessError, TimeoutExpired)
 from tempfile import NamedTemporaryFile
 from uuid import uuid4
-import shlex
 
 import utils
 import utils.aws as aws
@@ -30,14 +30,18 @@ def create_epub(event: utils.LambdaEvent) -> str:
     epub = NamedTemporaryFile(suffix=".epub")
     utils.Log.debug("tempfile created: %s", epub.name)
 
-    # Commands
-    pandoc = shlex.split("pandoc --from=markdown --to=epub "
-                         f"--metadata=title:'{event['title']}' --output={epub.name}")
+    pandoc_cmd = [
+        "pandoc",
+        "--from=markdown",
+        "--to=epub",
+        f"--metadata=title:'{event['title']}'",
+        f"--output={epub.name}",
+    ]
 
     try:
         timeout = 200
-        utils.Log.info("Executing %s", shlex.join(pandoc))
-        run(pandoc, input=bytes(markdown, encoding="utf-8"), check=True, timeout=timeout)
+        utils.Log.info("Executing %s", join(pandoc_cmd))
+        run(pandoc_cmd, input=bytes(markdown, encoding="utf-8"), check=True, timeout=timeout)
         utils.Log.info("EPUB creation completed (%d bytes)", stat(epub.name).st_size)
 
     except TimeoutExpired:
