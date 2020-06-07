@@ -13,11 +13,6 @@ def _struct_to_datetime(struct: time.struct_time) -> datetime:
     return datetime.fromtimestamp(time.mktime(struct))
 
 
-def _midnightify(date: datetime) -> datetime:
-    """Return midnightified datetime."""
-    return date.replace(hour=0, minute=0, second=0, microsecond=0)
-
-
 def _poll_new_posts() -> list:
     """Poll RSS/Atom feed and return new entries since yesterday at midnight."""
     now = datetime.utcnow()
@@ -25,8 +20,8 @@ def _poll_new_posts() -> list:
 
     # Jekyll's RSS plugin adds articles dated midnight of the publishing day, so we
     # check from yesterday to today at 00:00 precisely
-    yesterday_noon = _midnightify(yesterday)
-    today_noon = _midnightify(now)
+    yesterday_noon = helpers.midnightify(yesterday)
+    today_noon = helpers.midnightify(now)
 
     utils.Log.info("Considering new entries from %s between '%s' and '%s'",
                    env["BLOG_FEED_URL"], yesterday_noon, now)

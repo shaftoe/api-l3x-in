@@ -86,7 +86,7 @@ upgrade-cdk:
 all: bootstrap deploy reminder
 
 local-run:
-	python bin/run.py
+	ipython -i bin/run.py
 
 create-stack-scaffold:
 	# TODO

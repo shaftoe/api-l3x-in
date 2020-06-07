@@ -1,5 +1,5 @@
 from io import BufferedIOBase
-from time import time
+from time import (sleep, time)
 from typing import (
     Mapping,
     Iterable,
@@ -17,6 +17,9 @@ from . import (
 
 from .helpers import  import_non_stdlib_module
 
+boto3 = import_non_stdlib_module("boto3")
+boto_exceptions = import_non_stdlib_module("botocore.exceptions")
+
 
 def invoke_lambda(name: str, payload: dict, invoke_type: str = "RequestResponse") -> Response:
     """Trigger AWS Lambda execution."""
@@ -25,7 +28,6 @@ def invoke_lambda(name: str, payload: dict, invoke_type: str = "RequestResponse"
 
     response = Response()
 
-    boto3 = import_non_stdlib_module("boto3")
     lambda_client = boto3.client("lambda")
 
     Log.debug("Invoking lambda %s", name)
@@ -56,7 +58,6 @@ def publish_to_sns_topic(sns_topic: str, subject: str, content: dict) -> Respons
     Log.info("Sending message with subject '%s' to SNS topic %s", subject, sns_topic)
     Log.debug("Message: %s", content)
 
-    boto3 = import_non_stdlib_module("boto3")
     sns = boto3.client("sns")
 
     sns_response = sns.publish(
@@ -77,7 +78,6 @@ def publish_to_sns_topic(sns_topic: str, subject: str, content: dict) -> Respons
 def get_all_loggroups():
     """Return list of CloudWatch LogGroups in the account."""
     Log.debug("Retrive all LogGroups names in CloudWatch.")
-    boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("logs")
 
     response = client.describe_log_groups()
@@ -95,8 +95,6 @@ def send_event_to_logstream(log_group: str, log_stream: str, message: Mapping) -
     Log.debug("Send event content to CloudWatch LogGroup %s Stream %s",
               log_group, log_stream)
 
-    boto3 = import_non_stdlib_module("boto3")
-    boto_exceptions = import_non_stdlib_module("botocore.exceptions")
     client = boto3.client("logs")
 
     sequence_token = None
@@ -174,7 +172,6 @@ def read_log_stream(log_group: str, log_stream: str, start_time: Optional[int] =
     Log.debug("Read events from CloudWatch LogGroup %s Stream %s",
               log_group, log_stream)
 
-    boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("logs")
 
     resp = client.get_log_events(logGroupName=log_group,
@@ -191,7 +188,6 @@ def delete_log_stream(log_group: str, log_stream: str) -> None:
     """Delete log stream."""
     Log.debug("Delete CloudWatch LogGroup %s Stream %s", log_group, log_stream)
 
-    boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("logs")
 
     client.delete_log_stream(
@@ -203,7 +199,6 @@ def delete_log_stream(log_group: str, log_stream: str) -> None:
 def read_all_log_streams(log_group: str) -> Mapping:
     Log.info("Read all events from all CloudWatch LogGroup %s Streams", log_group)
 
-    boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("logs")
     resp = client.describe_log_streams(logGroupName=log_group)
 
@@ -218,7 +213,6 @@ def put_object_to_s3_bucket(key: str, bucket: str,
                             wait: Optional[bool] = False) -> Mapping:
     Log.info("Put key %s to S3 bucket %s", key, bucket)
 
-    boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("s3")
 
     response = client.put_object(Body=body, Bucket=bucket, Key=key)
@@ -232,8 +226,6 @@ def put_object_to_s3_bucket(key: str, bucket: str,
 def get_object_from_s3_bucket(key: str, bucket: str) -> BufferedIOBase:
     Log.info("Get key %s from S3 bucket %s", key, bucket)
 
-    boto3 = import_non_stdlib_module("boto3")
-    boto_exceptions = import_non_stdlib_module("botocore.exceptions")
     client = boto3.client("s3")
 
     try:
@@ -254,7 +246,6 @@ def trigger_ecs_fargate_task(task: str, cluster: str,
                              overrides: Optional[Mapping] = None) -> Mapping:
     Log.info("Trigger Fargate task %s", task)
 
-    boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("ecs")
 
     if overrides:
@@ -287,7 +278,6 @@ def scan_dynamodb_table(table_name: str):
     """
     Log.info("Scan DynamoDB table %s", table_name)
 
-    boto3 = import_non_stdlib_module("boto3")
     client = boto3.client("dynamodb")
 
     response = client.scan(TableName=table_name)
@@ -298,3 +288,38 @@ def scan_dynamodb_table(table_name: str):
 
     Log.debug("Response: %s", response)
     return response
+
+
+def run_insights_query(log_groups: List[str], query: str, start_time: int, end_time: int) -> str:
+    """Run given CloudWatch Logs Insights query for given LogGroups, return query ID."""
+    client = boto3.client("logs")
+
+    Log.info("Run CloudWatch Logs Insights query for log groups %s", ", ".join(log_groups))
+    Log.debug("Query: %s", query)
+
+    response = client.start_query(
+        logGroupNames=log_groups,
+        startTime=start_time,
+        endTime=end_time,
+        queryString=query,
+    )
+
+    Log.info("Query with id %s running", response["queryId"])
+    return response["queryId"]
+
+
+def get_insights_query_results(query_id: str) -> list:
+    """Poll CloudWatch Logs Insights for query results, return results list."""
+    delay = 2  # polling frequency in seconds
+    client = boto3.client("logs")
+    response = {}
+
+    Log.info("Inspecting status for query_id %s", query_id)
+    while len(response) == 0 or response.get("status") == "Running":
+        Log.debug("Sleeping %d seconds for query %s to complete...", delay, query_id)
+        sleep(delay)
+        response = client.get_query_results(queryId=query_id)
+
+    Log.info("Query %s status: %s", query_id, response["status"])
+    Log.debug("Query %s response: %s", query_id, response["results"])
+    return response["results"]
