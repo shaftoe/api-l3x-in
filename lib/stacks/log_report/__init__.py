@@ -40,10 +40,9 @@ class LogReportStack(core.Stack):
             statements=[
                 aws_iam.PolicyStatement(
                     actions=[
-                        "logs:DeleteLogStream",
                         "logs:DescribeLogGroups",
-                        "logs:DescribeLogStreams",
-                        "logs:GetLogEvents",
+                        "logs:GetQueryResults",
+                        "logs:StartQuery",
                     ],
                     resources=[f"arn:aws:logs:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:*"],
                 )

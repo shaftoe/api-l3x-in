@@ -1,10 +1,26 @@
+"""
+Lambda function that queries yesterday's CloudWatch Logs for errors and sends
+an email report with Markdown formatted content.
+"""
 from datetime import (datetime, timedelta)
 from os import environ as env
 from re import match
+from typing import Union
+import itertools
 
 import utils
 import utils.aws as aws
 import utils.handlers as handlers
+import utils.helpers as helpers
+
+
+# Ref: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html
+FIELDS = ["@message", "@log", "@logStream"]
+QUERY = ' | '.join([
+    f'FIELDS {", ".join(FIELDS)}',
+    'FILTER @message not like "DEBUG"',
+    'FILTER @message like "ERROR"',
+])
 
 
 def _send_email(subject: str, content: str) -> utils.Response:
@@ -19,59 +35,91 @@ def _send_email(subject: str, content: str) -> utils.Response:
         invoke_type="Event")
 
 
-def _create_md_document(own_log_group: str) -> str:
-    """Create Markdown report of errored logs in CloudWatch."""
-    # We fetch logs from yesterday's at 00:00
-    start_time = datetime.utcnow() - timedelta(days=1)
-    start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    start_seconds = int(start_time.timestamp() * 1000)
+def _get_insight_logs() -> dict:
+    """Execute CloudWatch Logs Insight with global QUERY."""
+    logs = {}
+    now = datetime.utcnow()
+    yesterday = now - timedelta(days=1)
+    end_time = helpers.midnightify(now)
+    start_time = helpers.midnightify(yesterday)
+    max_groups = 20
 
-    utils.Log.info("Considering log events since %s", start_time)
+    utils.Log.info("Considering log events between %s and %s", start_time, end_time)
 
-    report = {}
+    groups = [group for group in aws.get_all_loggroups() if group.startswith("/aws/")]
+    group_chunks = [chunk for chunk in (groups[i:i + max_groups]  # pylint: disable=unnecessary-comprehension
+                                        for i in range(0, len(groups), max_groups))]
+    if len(group_chunks) > 1:
+        utils.Log.info(
+            "AWS Logs Insights supports only %d groups per query"
+            "Splitting LogGroups in %d chunks", max_groups, len(group_chunks))
+        utils.Log.debug(group_chunks)
 
-    groups = [group for group in aws.get_all_loggroups()
-              if group.startswith("/aws/") and group != own_log_group]
+    def run_query(_groups):
+        return aws.get_insights_query_results(
+            query_id=aws.run_insights_query(log_groups=_groups,
+                                            query=QUERY,
+                                            start_time=round(start_time.timestamp()),
+                                            end_time=round(end_time.timestamp())))
 
-    for group in groups:
-        utils.Log.info("Processing group %s", group)
+    futures = helpers.exec_in_thread_and_wait(*((run_query, groups) for groups in group_chunks))
+    results = itertools.chain.from_iterable(future.result() for future in futures.done)
 
-        streams = aws.read_all_log_streams(log_group=group)
+    log_entries = [{entry["field"]: entry["value"] for entry in result}
+                   for result in results]
 
-        for stream in streams:
-            utils.Log.info("Processing stream %s", stream)
-            events = aws.read_log_stream(log_group=group,
-                                         log_stream=stream,
-                                         start_time=start_seconds)
+    for entry in log_entries:
+        # Using regex to remove leading account number from LogGroup name
+        group = match(r'\d+:(.*)', entry["@log"]).groups()[0]
+        msg, stream = entry["@message"], entry["@logStream"]
 
-            if events:
-                report[group] = []
-                for event in events:
-                    msg = event["message"]
-                    if match(r"(\[)?(ERROR|WARN)", msg):
-                        report[group].append(msg)
-            else:
-                utils.Log.info("Deleting empty stream %s", stream)
-                aws.delete_log_stream(log_group=group, log_stream=stream)
+        if group not in logs:
+            logs[group] = {}
 
-    # Remove groups with empty content
-    report = {group: content for group, content in report.items() if content}
+        if stream not in logs[group]:
+            logs[group][stream] = []
 
-    if report:
+        logs[group][stream].append(msg)
+
+    return logs
+
+
+def _create_md_document(logs: dict) -> Union[str, None]:
+    """Create Markdown report from logs dictionary.
+
+    `logs` format is:
+    {
+        groupName: {
+            streamName: [message, message, ...],
+            streamName: [message, message, ...],
+            ...
+        },
+        groupName: {
+            ...
+        }
+    }
+    """
+    output = None
+
+    if logs:
         utils.Log.info("Found content, generating Markdown report")
-        output = "# CloudWatch Logs ERR/WARN report\n"
+        output = "# CloudWatch Logs ERROR report\n"
 
-        for group, content in report.items():
-            output += f"\n## {group}\n\n"
-            for line in content:
-                output += f"{line}\n"
+        for group in logs:
+            output += f"\n## {group}\n"
 
-        return output
+            for stream in logs[group]:
+                output += f"\n### {stream}\n\n"
+
+                for message in logs[group][stream]:
+                    output += f"- {message.rstrip()}\n"
+
+    return output
 
 
-def send_report(event: utils.LambdaEvent):
-    """Send report as Markdown email attachment."""
-    markdown = _create_md_document(own_log_group=event["own_log_group"])
+def send_report(_: utils.LambdaEvent):
+    """Send report formatted as Markdown via email service."""
+    markdown = _create_md_document(logs=_get_insight_logs())
 
     if markdown:
         today = datetime.utcnow().strftime(format="%Y-%m-%d")
@@ -85,8 +133,6 @@ def send_report(event: utils.LambdaEvent):
 
 def handler(event, context) -> utils.Response:
     """Lambda entry point."""
-    event["own_log_group"] = context.log_group_name
-
     return handlers.EventHandler(
         name="send_report",
         event=utils.LambdaEvent(event),
