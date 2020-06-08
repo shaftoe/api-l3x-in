@@ -323,3 +323,9 @@ def get_insights_query_results(query_id: str) -> list:
     Log.info("Query %s status: %s", query_id, response["status"])
     Log.debug("Query %s response: %s", query_id, response["results"])
     return response["results"]
+
+
+def update_dynamo_item(table_name: str, key: dict, att_updates: dict):
+    """Run update_item on DynamoDB table."""
+    client = boto3.client("dynamodb")
+    return client.update_item(TableName=table_name, Key=key, AttributeUpdates=att_updates)

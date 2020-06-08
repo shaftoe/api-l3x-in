@@ -1,22 +1,20 @@
 '''Get page speed information thanks to Google Pagespeed APIs, store in DynamoDB table.'''
-from concurrent.futures import (ThreadPoolExecutor, wait)
 from os import environ as env
 from statistics import mean
-from typing import (Tuple, Union)
+from typing import Tuple
 
 import utils
-import utils.helpers as helpers
+import utils.aws as aws
 import utils.handlers as handlers
+import utils.helpers as helpers
 
-boto3 = helpers.import_non_stdlib_module("boto3")  # pylint: disable=invalid-name
-botocore = helpers.import_non_stdlib_module("botocore")  # pylint: disable=invalid-name
 requests = helpers.import_non_stdlib_module("requests")  # pylint: disable=invalid-name
 
 
 GOOGLE_PAGESPEED_API_URL = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
 
 
-def get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[float, str]:
+def _get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[float, str]:
     """Return average of audit responses from Google PageSpeed API"""
     helpers.validate_url(url)
 
@@ -38,41 +36,28 @@ def get_average_pagespeed_score_and_timestamp(url: str) -> Tuple[float, str]:
     return score, timestamp
 
 
-def store_average_pagespeed_score(client, url: str, score: float, timestamp: str):
-    """Store average from Google PageSpeed API into DynamoDB."""
-    client.update_item(
-        TableName=env["DYNAMODB_TABLE"],
-        Key={"url": {"S": url}},
-        AttributeUpdates={
-            'latest_score_value': {
-                'Value': {'N': str(score)},  # NOTE: numeric values are sent as strings to DynamoDB
-                'Action': 'PUT',
-            },
-            'latest_score_timestamp': {
-                'Value': {'S': timestamp},
-                'Action': 'PUT',
-            }
-        },
-    )
-
-
 def fetch_and_store_all_pagespeed_scores(_: utils.LambdaEvent):
     """Hit Google Pagespeed APIs in parallel for each of the given urls. Store data to DynamoDB."""
-    client = boto3.client("dynamodb")
-    executor = ThreadPoolExecutor()  # by default preserves at least 5 workers for I/O bound tasks
+    urls = env["GOOGLE_PAGESPEED_TARGET_URLS"].replace(" ", "").split(",")
 
-    def run_job(_url):
-        score, timestamp = get_average_pagespeed_score_and_timestamp(_url)
-        store_average_pagespeed_score(client=client, url=_url, score=score, timestamp=timestamp)
+    def run_job(url):
+        score, timestamp = _get_average_pagespeed_score_and_timestamp(url)
+        aws.update_dynamo_item(
+            table_name=env["DYNAMODB_TABLE"],
+            key={"url": {"S": url}},
+            att_updates={
+                'latest_score_value': {
+                    'Value': {'N': str(score)},  # NOTE: numeric values are sent as strings to DynDB
+                    'Action': 'PUT',
+                },
+                'latest_score_timestamp': {
+                    'Value': {'S': timestamp},
+                    'Action': 'PUT',
+                }
+            },
+        )
 
-    results = wait([executor.submit(run_job, url)
-                    for url in env["GOOGLE_PAGESPEED_TARGET_URLS"].replace(" ", "").split(",")])
-
-    exceptions = [future.exception() for future in results.done.union(results.not_done)]
-    if any(exceptions):
-        for ex in exceptions:
-            utils.Log.debug("Thread throwed exception: %s", ex)
-        raise utils.HandledError("Error(s) while running parallel jobs", status_code=500)
+    helpers.exec_in_thread_and_wait(*((run_job, url) for url in urls))
 
     utils.Log.info("All done")
 
