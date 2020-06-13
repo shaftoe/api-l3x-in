@@ -18,6 +18,7 @@ from stacks.notifications import NotificationsStack
 from stacks.pagespeed import PageSpeedStack
 from stacks.pocket_to_kindle import PocketToKindleStack
 from stacks.publish_to_social import SocialPublishStack
+from stacks.whois_poller import WhoisStack
 
 print("### api-l3x-in version ", end="")
 stdout.write("\033[1;31m") # Set red, ref https://stackoverflow.com/a/37340245/2274124
@@ -84,6 +85,16 @@ LogReportStack(
     tags={
         'Managed': 'cdk',
         'Name': 'log-report',
+    },
+)
+
+WhoisStack(
+    APP,
+    'whois-poller',
+    lambda_notifications=NOTIFICATIONS_STACK.pushover,
+    tags={
+        'Managed': 'cdk',
+        'Name': 'whois-poller',
     },
 )
 
