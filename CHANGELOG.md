@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [0.11.0](https://github.com/shaftoe/api-l3x-in/compare/0.10.1...0.11.0) (2020-06-13)
+
+### Fixes
+
+* **pagespeed:** remove bogus default value in pagespeed_poller
+* **pagespeed:** simplify pagespeed_poller using helpers from utils
+* **pocket-to-kindle:** fix random doc title splitting error removing split function
+* **utils:** add helpers, cleanups
+* fix wrong version in Changelog
+
+### Added
+
+* **log-report:** refactor send_report to use CloudWatch Logs Insights
+
 # [0.10.1](https://github.com/shaftoe/api-l3x-in/compare/0.10.0...0.10.1) (2020-05-23)
 
 ### Fixes
