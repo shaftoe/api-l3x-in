@@ -19,6 +19,11 @@ def create_epub(event: utils.LambdaEvent) -> str:
     requests = helpers.import_non_stdlib_module("requests")
     response = requests.get(url=event["url"])
 
+    if not response.status_code == 200:
+        raise utils.HandledError("Error downloading %s: "
+                                 "HTTP status code %d" % (event["ur"], response.status_code),
+                                 status_code=response.status_code)
+
     utils.Log.info("Create Markdown text from %s source", event["url"])
     html2text = helpers.import_non_stdlib_module("html2text")
     markdown_maker = html2text.HTML2Text()
