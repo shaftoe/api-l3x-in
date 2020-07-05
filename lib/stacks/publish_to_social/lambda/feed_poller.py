@@ -8,11 +8,6 @@ import utils.handlers as handlers
 import utils.helpers as helpers
 
 
-def _struct_to_datetime(struct: time.struct_time) -> datetime:
-    """Return datetime from time.struc_time."""
-    return datetime.fromtimestamp(time.mktime(struct))
-
-
 def _poll_new_posts() -> list:
     """Poll RSS/Atom feed and return new entries since yesterday at midnight."""
     now = datetime.utcnow()
@@ -33,8 +28,10 @@ def _poll_new_posts() -> list:
     utils.Log.info("Fetching content from %s", env["BLOG_FEED_URL"])
     source = feedparser.parse(env["BLOG_FEED_URL"])
 
+    struct_to_datetime = helpers.struct_to_datetime
+
     new_posts = [entry.link for entry in reversed(source.entries)
-                 if yesterday_noon <= _struct_to_datetime(entry.published_parsed) < today_noon]
+                 if yesterday_noon <= struct_to_datetime(entry.published_parsed) < today_noon]
 
     if new_posts:
         utils.Log.info("Found %d new posts", len(new_posts))

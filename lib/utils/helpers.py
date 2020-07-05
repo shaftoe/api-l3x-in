@@ -12,6 +12,7 @@ from typing import (
 import base64
 import importlib
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -197,3 +198,8 @@ def exec_in_thread_and_wait(*jobs: Tuple[Callable, Any]) -> List:
         raise HandledError("Error(s) while running parallel jobs", status_code=500)
 
     return futures
+
+
+def struct_to_datetime(struct: time.struct_time) -> datetime:
+    """Return datetime from time.struc_time."""
+    return datetime.fromtimestamp(time.mktime(struct))
