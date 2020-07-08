@@ -13,6 +13,7 @@ with open("VERSION") as f:
 
 from aws_cdk import core
 from stacks.api import ApiStack
+from stacks.deployer import DeployerStack
 from stacks.log_report import LogReportStack
 from stacks.notifications import NotificationsStack
 from stacks.pagespeed import PageSpeedStack
@@ -95,6 +96,15 @@ WhoisStack(
     tags={
         'Managed': 'cdk',
         'Name': 'whois-poller',
+    },
+)
+
+DeployerStack(
+    APP,
+    'deployer',
+    tags={
+        'Managed': 'cdk',
+        'Name': 'deployer',
     },
 )
 
