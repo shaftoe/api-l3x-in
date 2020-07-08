@@ -139,8 +139,8 @@ def send_event_to_logstream(log_group: str, log_stream: str, message: Mapping) -
                    "to CloudWatch LogGroup %s Stream %s" % (log_group, log_stream)
 
         except boto_exceptions.ClientError as error:
-            Log.warning("Catched CloudWatch Logs client error code %s",
-                        error.response['Error']['Code'])
+            Log.debug("Catched CloudWatch Logs client error code %s",
+                      error.response['Error']['Code'])
 
             if error.response['Error']['Code'] in ["DataAlreadyAcceptedException",
                                                    "InvalidSequenceTokenException"]:
@@ -155,7 +155,7 @@ def send_event_to_logstream(log_group: str, log_stream: str, message: Mapping) -
                 retrials -= 1
 
                 if retrials > 0:
-                    Log.warning("Retrying %d more time(s)...", retrials)
+                    Log.debug("Retrying %d more time(s)...", retrials)
 
                 else:
                     raise HandledError(

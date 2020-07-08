@@ -19,7 +19,7 @@ FIELDS = ["@message", "@log", "@logStream"]
 QUERY = ' | '.join([
     f'FIELDS {", ".join(FIELDS)}',
     'FILTER @message not like "DEBUG"',
-    'FILTER @message like "ERROR"',
+    'FILTER @message like /\[WARN|\[ERROR/', # pylint: disable=anomalous-backslash-in-string
 ])
 
 
