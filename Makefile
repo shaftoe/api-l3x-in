@@ -15,7 +15,7 @@ YELLOW := $(shell tput setaf 3)
 BLUE := $(shell tput setaf 4)
 
 install_venv: # in the unfortunate case your workstation is still running Python v2
-	@$(CHECK_PY) else python3.8 -m venv .env; fi
+	@$(CHECK_PY) else python3 -m venv .env; fi
 
 check_python:
 	@$(CHECK_PY) else \
