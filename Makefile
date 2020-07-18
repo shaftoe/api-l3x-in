@@ -76,7 +76,7 @@ run-tests:
 	@printf '$(GREEN)### Run pylint$(CLR)\n'
 	@pylint --errors-only --ignore=layers lib/ bin/*py setup.py
 
-upgrade-cdk:
+upgrade-cdk: check_python
 	@npm update -g aws-cdk
 	@pip list --outdated --format=freeze \
 		| grep aws-cdk \
