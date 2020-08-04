@@ -7,3 +7,4 @@ cdk.out
 config.mk
 pandoc
 run.py
+.coverage

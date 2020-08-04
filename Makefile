@@ -72,9 +72,10 @@ clean:
 	python bin/cleanup_cache.py lib/
 
 run-tests:
-	@printf '$(RED)### FIXME: no test runner available$(CLR)\n'
 	@printf '$(GREEN)### Run pylint$(CLR)\n'
 	@pylint --errors-only --ignore=layers lib/ bin/*py setup.py
+	@printf '$(GREEN)### Run pytest$(CLR)\n'
+	@pytest --cov=lib/ test/
 
 upgrade-cdk: check_python
 	@npm update -g aws-cdk

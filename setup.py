@@ -44,6 +44,8 @@ setuptools.setup(
         "feedparser",
         "html2text",
         "pylint",
+        "pytest",
+        "pytest-cov",
         "requests",
     ],
 
