@@ -8,5 +8,7 @@ def handler(event, context) -> utils.Response:
         name="facebook",
         event=utils.LambdaEvent(event),
         context=utils.LambdaContext(context),
-        action=lambda x: "success",
+        action=lambda x: NotImplementedError(
+            "Facebook APIs don't allow post of content to user feed: "
+            "https://developers.facebook.com/docs/graph-api/using-graph-api/#publishing")
     ).response
