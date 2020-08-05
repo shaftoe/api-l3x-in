@@ -15,6 +15,7 @@ from aws_cdk import core
 from stacks.api import ApiStack
 from stacks.deployer import DeployerStack
 from stacks.log_report import LogReportStack
+from stacks.mongodumper import MongodumperStack
 from stacks.notifications import NotificationsStack
 from stacks.pagespeed import PageSpeedStack
 from stacks.pocket_to_kindle import PocketToKindleStack
@@ -105,6 +106,15 @@ DeployerStack(
     tags={
         'Managed': 'cdk',
         'Name': 'deployer',
+    },
+)
+
+MongodumperStack(
+    APP,
+    'mongodumper',
+    tags={
+        'Managed': 'cdk',
+        'Name': 'mongodumper',
     },
 )
 
