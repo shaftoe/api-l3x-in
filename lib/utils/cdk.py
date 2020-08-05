@@ -1,9 +1,11 @@
 from re import match
 from os import environ
-from typing import (Iterable, Mapping, Union, Optional)
+from typing import (Iterable, Mapping, Union, Optional, Tuple)
 
 from aws_cdk import (
     assets,
+    aws_ec2,
+    aws_ecs,
     aws_s3,
     aws_lambda,
     aws_logs,
@@ -105,3 +107,58 @@ def validate_environment(environment: Mapping) -> Mapping:
             raise ValueError('invalid environment variable: {}'.format(var))
 
     return environment
+
+
+def get_fargate_cluster(scope: core.Construct, construct_id: str) -> Tuple[aws_ecs.ICluster, aws_ec2.IVpc]:
+    vpc = aws_ec2.Vpc(
+        scope,
+        f"{construct_id}-vpc",
+        max_azs=1,
+        # Default VPC creates a public subnet with NAT Gateway (which costs money) so we use
+        # a public subnet instead. Security concerns are minimal and default Security Group
+        # is sealed anyway
+        subnet_configuration=[
+            aws_ec2.SubnetConfiguration(
+                name=f"{construct_id}-public-subnet",
+                subnet_type=aws_ec2.SubnetType.PUBLIC,
+            )
+        ],
+    )
+    cluster = aws_ecs.Cluster(scope, f"{construct_id}-fargate-cluster", vpc=vpc)
+
+    return cluster, vpc
+
+
+def get_fargate_task(scope: core.Construct, construct_id: str, mem_limit: str) -> aws_ecs.ITaskDefinition:
+    return aws_ecs.TaskDefinition(
+        scope,
+        f"{construct_id}-fargate-task",
+        compatibility=aws_ecs.Compatibility.FARGATE,
+        network_mode=aws_ecs.NetworkMode.AWS_VPC,
+        cpu="256",
+        memory_mib=mem_limit,
+    )
+
+
+def get_fargate_container(scope: core.Construct, construct_id: str, task: aws_ecs.TaskDefinition,
+        mem_limit: str, environment: Optional[Mapping] = None) -> aws_ecs.ContainerDefinition:
+    container_log_group = aws_logs.LogGroup(
+        scope,
+        f"{construct_id}-container-log-group",
+        log_group_name=f"/aws/ecs/{construct_id}",
+        retention=DEFAULT_LOG_RETENTION,
+        removal_policy=core.RemovalPolicy.DESTROY,
+    )
+
+    return task.add_container(
+        f"{construct_id}-task-container",
+        image=aws_ecs.ContainerImage.from_asset(  # pylint: disable=no-value-for-parameter
+            directory=f"lib/stacks/{construct_id}/docker".replace("-", "_")),
+        memory_limit_mib=int(mem_limit),
+        working_directory="/tmp",
+        logging=aws_ecs.LogDrivers.aws_logs(  # pylint: disable=no-value-for-parameter
+            log_group=container_log_group,
+            stream_prefix=construct_id,
+        ),
+        environment=environment,
+    )

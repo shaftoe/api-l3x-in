@@ -1,9 +1,6 @@
 from os import environ as env
 
 from aws_cdk import (
-    aws_cloudtrail,
-    aws_ec2,
-    aws_ecs,
     aws_events,
     aws_events_targets,
     aws_iam,
@@ -20,6 +17,9 @@ from utils.cdk import (
     DEFAULT_LOG_RETENTION,
     code_from_path,
     get_bucket,
+    get_fargate_cluster,
+    get_fargate_container,
+    get_fargate_task,
     get_lambda,
     get_layer,
 )
@@ -122,30 +122,10 @@ class PocketToKindleStack(core.Stack):
         # Fargate task: run dockerized `kindlegen` to parse EPUB to MOBI,
         # triggered by trigger_ecs_task Lambda
         # https://medium.com/@piyalikamra/s3-event-based-trigger-mechanism-to-start-ecs-far-gate-tasks-without-lambda-32f57ed10b0d
-        vpc = aws_ec2.Vpc(
-            self,
-            f"{id}-vpc",
-            max_azs=1,
-            # Default VPC creates a public subnet with NAT Gateway (which costs money) so we use
-            # a public subnet instead. Security concerns are minimal and default Security Group
-            # is sealed anyway
-            subnet_configuration=[
-                aws_ec2.SubnetConfiguration(
-                    name=f"{id}-public-subnet",
-                    subnet_type=aws_ec2.SubnetType.PUBLIC,
-                )
-            ],
-        )
-        cluster = aws_ecs.Cluster(self, f"{id}-fargate-cluster", vpc=vpc)
+        cluster, vpc = get_fargate_cluster(self, id)
 
         mem_limit = "512"
-        task = aws_ecs.TaskDefinition(
-            self,
-            f"{id}-fargate-task",
-            compatibility=aws_ecs.Compatibility.FARGATE,
-            cpu="256",
-            memory_mib=mem_limit,
-        )
+        task = get_fargate_task(self, id, mem_limit)
         aws_iam.Policy(
             self,
             f"{id}-bucket-policy",
@@ -162,25 +142,7 @@ class PocketToKindleStack(core.Stack):
             ],
         )
 
-        container_log_group = aws_logs.LogGroup(
-            self,
-            f"{id}-kindlegen-container-log-group",
-            log_group_name=f"/aws/ecs/{id}",
-            retention=DEFAULT_LOG_RETENTION,
-            removal_policy=core.RemovalPolicy.DESTROY,
-        )
-
-        container = task.add_container(
-            f"{id}-kindlegen-task-container",
-            image=aws_ecs.ContainerImage.from_asset(  # pylint: disable=no-value-for-parameter
-                directory=f"lib/stacks/{id}/docker".replace("-", "_")),
-            memory_limit_mib=int(mem_limit),
-            working_directory="/tmp",
-            logging=aws_ecs.LogDrivers.aws_logs(  # pylint: disable=no-value-for-parameter
-                log_group=container_log_group,
-                stream_prefix="kindlegen",
-            ),
-        )
+        container = get_fargate_container(self, id, task, mem_limit)
 
         # Lambda trigger_ecs_task: trigger Fargate task when new EPUB file is dropped into epub_bucket
         lambda_trigger_ecs_task = get_lambda(
