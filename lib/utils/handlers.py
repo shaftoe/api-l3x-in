@@ -198,7 +198,7 @@ class ApiGatewayEventHandler(EventHandler):
                            self._event["path"].lower()
             Log.info("Processing HTTP request: %s %s", method, path)
 
-        except KeyError as error:
+        except KeyError:
             raise HandledError("Missing 'httpMethod' or 'path' in event")
 
         route = "{} {}".format(method, path)

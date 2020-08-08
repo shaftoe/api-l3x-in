@@ -93,7 +93,10 @@ class Response(dict):
             return 500
 
     def _print_log(self) -> None:
-        if 300 <= self.status_code < 500 or self.status_code == 501:
+        if self.status_code == 404:
+            Log.info(self._error)
+
+        elif 300 <= self.status_code < 500 or self.status_code == 501:
             Log.warning(self._error)
 
         elif self.status_code == 500 or self.status_code > 501:
