@@ -13,7 +13,7 @@ mongodump \
     --gzip \
     --ssl \
     --uri="${MONGODB_URI}" \
-    | aws s3 cp - ${DST_FILE}
+    | aws s3 cp - "${DST_FILE}"
 
 printf "INFO: All done, exiting with code 0\n"
 exit 0
