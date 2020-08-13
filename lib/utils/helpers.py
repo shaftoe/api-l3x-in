@@ -139,35 +139,6 @@ def send_http_request(url: str, method: str = "POST", data: Optional[Mapping] = 
     return response
 
 
-def get_file_from_github(filepath: str) -> str:
-    """Download file content from raw.githubusercontent.com
-
-    Ref: https://developer.github.com/v3/repos/contents/#get-contents
-
-    Use basic auth:
-    https://developer.github.com/v3/auth/#basic-authentication
-
-    Requires GITHUB_USER and GITHUB_TOKEN env vars
-    """
-    github_api = "https://api.github.com/"
-    path = urllib.parse.urljoin(github_api, "repos/" + filepath)
-
-    Log.info("Downloading file content from %s", path)
-
-    resp = send_http_request(path,
-                             method="GET",
-                             auth={
-                                 "user": environ["GITHUB_USER"],
-                                 "pass": environ["GITHUB_TOKEN"],
-                             })
-
-    Log.debug("Decoding content")
-    content = base64.standard_b64decode(resp.text["content"]).decode(encoding="utf-8")
-
-    Log.debug("Returning content: %s", content)
-    return content
-
-
 def midnightify(date: datetime) -> datetime:
     """Return midnightified datetime."""
     return date.replace(hour=0, minute=0, second=0, microsecond=0)

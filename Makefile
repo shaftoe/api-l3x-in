@@ -63,7 +63,7 @@ list: requirements run-tests clean cdk_version
 	@printf '$(GREEN)### Listing available stacks$(CLR)\n'
 	@$(CDK) ls
 
-diff: requirements run-tests clean cdk_version
+diff: clean cdk_version
 	@printf '$(GREEN)### Diff stacks $(BOLD)$(CDK_STACKS)$(CLR)\n'
 	@$(CDK) diff $(CDK_STACKS)
 
