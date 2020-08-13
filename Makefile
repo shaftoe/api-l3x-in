@@ -71,11 +71,15 @@ clean:
 	@printf '$(GREEN)$(BOLD)### Cleanup local Python caches$(CLR)\n'
 	python bin/cleanup_cache.py lib/
 
-run-tests:
+pylint:
 	@printf '$(GREEN)### Run pylint$(CLR)\n'
-	@pylint --errors-only --ignore=layers lib/ bin/*py setup.py
+	@pylint --errors-only --ignore=layers lib/ test/*py bin/*py setup.py
+
+pytest:
 	@printf '$(GREEN)### Run pytest$(CLR)\n'
 	@pytest --cov=lib/ test/
+
+run-tests: pylint pytest
 
 upgrade-cdk: check_python
 	@npm update -g aws-cdk
@@ -100,4 +104,4 @@ show-loggroups:
 		--query 'logGroups[*].{NAME:logGroupName}' \
 		--output text
 
-.PHONY: clean diff reminder trigger-lambda find-lambda requirements upgrade-cdk bootstrap create-stack-scaffold install_venv run-tests cdk_version deploy list show-loggroups check_python destroy local-run synth
+.PHONY: clean diff reminder trigger-lambda find-lambda requirements upgrade-cdk bootstrap create-stack-scaffold install_venv pytest pylint run-tests cdk_version deploy list show-loggroups check_python destroy local-run synth
