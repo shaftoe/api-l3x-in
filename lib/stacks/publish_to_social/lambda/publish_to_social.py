@@ -6,9 +6,6 @@ import utils.handlers as handlers
 import utils.helpers as helpers
 
 
-SNS_TOPIC = environ["SNS_TOPIC"]
-
-
 def scrape_page(url: str) -> dict:
     """Scrape title and description from webpage at `url`."""
     utils.Log.info("Scraping %s in search of title and description", url)
@@ -21,12 +18,11 @@ def scrape_page(url: str) -> dict:
     bs4 = helpers.import_non_stdlib_module("bs4")
     soup = bs4.BeautifulSoup(page, "html.parser")
 
-    categories = []
     try:
         utils.Log.debug("Searching for categories meta tag")
-        categories = [cat.strip(' ')
-                      for cat in soup.find("meta", {"name": "categories"})["content"].split(",")
-                      if len(cat) > 0]
+        found = soup.find("meta", {"name": "categories"})
+        categories = found["content"].split(",") if found else []
+        categories = [cat.strip(' ') for cat in categories if len(cat) > 0]
 
     except TypeError as error:
         utils.Log.warning("Could not find any categories meta tag: %s", error)
@@ -73,11 +69,8 @@ def publish(event: dict) -> str:
     social medias' public APIs.
     """
     if "url" in event:
-        utils.Log.warning("Found 'url' key in client input, ignoring other keys")
-
-        if not event["url"].startswith("https://"):
-            raise utils.HandledError("Wrong url value: '%s'" % event["url"])
-
+        utils.Log.debug("Found 'url' key in client input, ignoring other keys")
+        helpers.validate_url(event["url"])
         content = build_message(event["url"],
                                 disable=event.get("disable", []))
 
@@ -85,7 +78,7 @@ def publish(event: dict) -> str:
         raise utils.HandledError("Missing 'url' key in payload")
 
     message_id = aws.publish_to_sns_topic(
-        sns_topic=SNS_TOPIC,
+        sns_topic=environ["SNS_TOPIC"],
         subject="publish_to_social",
         content=content
     ).text
