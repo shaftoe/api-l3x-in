@@ -27,6 +27,8 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
     """Send email message via Mailjet APIs.
 
     :param event:
+      - may have "mail_from" email address key (use MAILJET_FROM_ADDRESS from env if)
+      - may have "mail_from_name" textual sender name key
       - may have "mail_to" email address key (use MAILJET_DEFAULT_TO_ADDRESS from env if not)
       - may have "custom_id" key (for internal Mailjet use)
       - may have "subject" key to be used as email subject
@@ -49,11 +51,14 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
     utils.Log.info("Sending email message via %s", MAILJET_API_ENDPOINT)
 
     msg = {
-        "From": {"Email":env["MAILJET_FROM_ADDRESS"]},
+        "From": {"Email": event.get("mail_from", env["MAILJET_FROM_ADDRESS"])},
         "TextPart": event.get("text", "no content"),
         "To": [{"Email": event.get("mail_to", env["MAILJET_DEFAULT_TO_ADDRESS"])}],
         "CustomID": event.get("custom_id", "api-l3x-in"),
     }
+
+    if "mail_from_name" in event:
+        msg["From"]["Name"] = event["mail_from_name"]
 
     if "subject" in event:
         msg["Subject"] = event["subject"]
