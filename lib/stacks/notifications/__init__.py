@@ -2,6 +2,7 @@ from os import environ as env
 from typing import Iterable
 
 from aws_cdk import (
+    aws_iam,
     aws_lambda,
     core,
 )
@@ -40,3 +41,5 @@ class NotificationsStack(core.Stack):
                 "MAILJET_DEFAULT_TO_ADDRESS": env["MAILJET_DEFAULT_TO_ADDRESS"],
                 "MAILJET_FROM_ADDRESS": env["MAILJET_FROM_ADDRESS"],
             })
+
+        self.mailjet.grant_invoke(aws_iam.User(self, f"{id}-mail-sender"))
