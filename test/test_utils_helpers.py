@@ -80,3 +80,30 @@ def test_exec_in_thread_and_wait():
 def test_exec_in_thread_and_wait_throws():
     with pytest.raises(HandledError):
         helpers.exec_in_thread_and_wait(*((lambda x: 1 / x, x) for x in [0, 1, 2]))
+
+@pytest.mark.parametrize(
+    "mail_string, parsed",
+    [
+        ("some noise", (None, None)),
+        ("more @ noise", (None, None)),
+        ("even more @noise", (None, None)),
+        ("bad@email here", (None, None)),
+        ("another bad@email.address here", (None, None)),
+        ("some@email.com", (None, "some@email.com")),
+        ("some@email.com  ", (None, "some@email.com")),
+        ("  some@email.com  ", (None, "some@email.com")),
+        ("Some Email  some@email.com  ", ("Some Email", "some@email.com")),
+        (" Some Other Email  some-other@email.com  ", ("Some Other Email", "some-other@email.com")),
+        ("  'Some Email'  some@email.com  ", ("'Some Email'", "some@email.com")),
+        ("  'Some Email  some@email.com  ", ("'Some Email", "some@email.com")),
+        ("  Some Email'  some@email.com  ", ("Some Email'", "some@email.com")),
+        ("Someone some@email.com", ("Someone", "some@email.com")),
+        ('"Someone" some.one@email.com', ('"Someone"', "some.one@email.com")),
+        ("Some One some.one@a.b.c", ("Some One", "some.one@a.b.c")),
+        ("Some One Else some.one.else@a.b.c", ("Some One Else", "some.one.else@a.b.c")),
+        ("'Some One Else' some.one.else@a.b.c", ("'Some One Else'", "some.one.else@a.b.c")),
+        ("blahBlah 123abc789@a.b", ("blahBlah", "123abc789@a.b")),
+    ]
+)
+def test_parsed_email_address(mail_string, parsed):
+    assert helpers.parsed_email_address(mail_string) == parsed

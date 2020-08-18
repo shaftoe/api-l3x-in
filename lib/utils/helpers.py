@@ -1,5 +1,5 @@
 from datetime import datetime
-from os import environ
+from re import search
 from typing import (
     Iterable,
     List,
@@ -163,3 +163,28 @@ def exec_in_thread_and_wait(*jobs: Tuple[Callable, Any]) -> List:
 def struct_to_datetime(struct: time.struct_time) -> datetime:
     """Return datetime from time.struc_time."""
     return datetime.fromtimestamp(time.mktime(struct))
+
+
+def parsed_email_address(mail_string: str) -> Tuple[str, str]:
+    """Parse MAIL_FROM-like string and return tuple with name string and email address."""
+    matches = [None, None]
+    # email regex from https://emailregex.com/
+    match = search(r'((.*) )?([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+) *$', mail_string)
+
+    if match:
+        Log.debug("String input '%s' matches regexp", mail_string)
+        matches = list(match.groups()[1:])
+
+        if matches[0]:
+            if search(r"^ +$", matches[0]):
+                matches[0] = None
+            else:
+                matches[0] = matches[0].lstrip(" ").rstrip(" ")
+
+        matches[1] = matches[1].rstrip(" ")
+        Log.debug("Found content: %s", matches)
+
+    else:
+        Log.debug("No matching email address string found")
+
+    return tuple(matches)

@@ -27,9 +27,10 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
     """Send email message via Mailjet APIs.
 
     :param event:
-      - may have "mail_from" email address key (use MAILJET_FROM_ADDRESS from env if)
-      - may have "mail_from_name" textual sender name key
+      - may have "mail_from" email address key (use MAILJET_FROM_ADDRESS from env if not), in
+        the form 'Some Name <some@email.address>' ('Some Name' optional)
       - may have "mail_to" email address key (use MAILJET_DEFAULT_TO_ADDRESS from env if not)
+        in the form 'Some Name <some@email.address>' ('Some Name' optional)
       - may have "custom_id" key (for internal Mailjet use)
       - may have "subject" key to be used as email subject
       - may have "text" key to be used as text content
@@ -51,14 +52,31 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
     utils.Log.info("Sending email message via %s", MAILJET_API_ENDPOINT)
 
     msg = {
-        "From": {"Email": event.get("mail_from", env["MAILJET_FROM_ADDRESS"])},
+        "From": {"Email": env["MAILJET_FROM_ADDRESS"]},
         "TextPart": event.get("text", "no content"),
-        "To": [{"Email": event.get("mail_to", env["MAILJET_DEFAULT_TO_ADDRESS"])}],
+        "To": [{"Email": env["MAILJET_DEFAULT_TO_ADDRESS"]}],
         "CustomID": event.get("custom_id", "api-l3x-in"),
     }
 
-    if "mail_from_name" in event:
-        msg["From"]["Name"] = event["mail_from_name"]
+    if "mail_from" in event:
+        utils.Log.debug("Found `mail_from` in event, parsing content: %s", event["mail_from"])
+        name, email = helpers.parsed_email_address(event["mail_from"])
+
+        if name:
+            msg["From"]["Name"] = name
+
+        if email:
+            msg["From"]["Email"] = email
+
+    if "mail_to" in event:
+        utils.Log.debug("Found `mail_to` in event, parsing content: %s", event["mail_to"])
+        name, email = helpers.parsed_email_address(event["mail_to"])
+
+        if name:
+            msg["To"][0]["Name"] = name
+
+        if email:
+            msg["To"][0]["Email"] = email
 
     if "subject" in event:
         msg["Subject"] = event["subject"]
