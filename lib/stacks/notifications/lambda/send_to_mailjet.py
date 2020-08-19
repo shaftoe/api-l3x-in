@@ -27,10 +27,14 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
     """Send email message via Mailjet APIs.
 
     :param event:
-      - may have "mail_from" email address key (use MAILJET_FROM_ADDRESS from env if not), in
-        the form 'Some Name <some@email.address>' ('Some Name' optional)
-      - may have "mail_to" email address key (use MAILJET_DEFAULT_TO_ADDRESS from env if not)
+      - may have "mail_from" email address string key (use MAILJET_FROM_ADDRESS from env if not),
         in the form 'Some Name <some@email.address>' ('Some Name' optional)
+      - may have "mail_to" email address string key (use MAILJET_DEFAULT_TO_ADDRESS from env if not)
+        in the form 'Some Name <some@email.address>' ('Some Name' optional)
+      - may have "mail_cc" list of optional email CC: email addresses in the form
+        'Some Name <some@email.address>' ('Some Name' optional)
+      - may have "mail_bcc" list of optional email BCC: email addresses in the form
+        'Some Name <some@email.address>' ('Some Name' optional)
       - may have "custom_id" key (for internal Mailjet use)
       - may have "subject" key to be used as email subject
       - may have "text" key to be used as text content
@@ -55,6 +59,8 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
         "From": {"Email": env["MAILJET_FROM_ADDRESS"]},
         "TextPart": event.get("text", "no content"),
         "To": [{"Email": env["MAILJET_DEFAULT_TO_ADDRESS"]}],
+        "Cc": [],
+        "Bcc": [],
         "CustomID": event.get("custom_id", "api-l3x-in"),
     }
 
@@ -77,6 +83,21 @@ def deliver_to_mailjet(event: utils.LambdaEvent) -> str:
 
         if email:
             msg["To"][0]["Email"] = email
+
+    for src_key, target_key in {"mail_cc": "Cc", "mail_bcc": "Bcc"}.items():
+
+        if src_key in event:
+            utils.Log.debug("Found `%s` in event, parsing content: %s", src_key, event[src_key])
+
+            for mail_string in event[src_key]:
+                name, email = helpers.parsed_email_address(mail_string)
+
+                if email:
+                    utils.Log.debug("Adding %s address: %s", target_key, email)
+                    msg[target_key].append({"Email": email})
+
+                    if name:
+                        msg[target_key][-1]["Name"] = name
 
     if "subject" in event:
         msg["Subject"] = event["subject"]
