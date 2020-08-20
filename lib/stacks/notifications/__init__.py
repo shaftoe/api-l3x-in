@@ -22,7 +22,7 @@ class NotificationsStack(core.Stack):
         self.pushover = get_lambda(
             self,
             "%s-lambda-pushover" % id,
-            code='lib/stacks/%s/lambda' % id,
+            code='lib/stacks/%s/lambdas' % id,
             handler="send_to_pushover.handler",
             environment={
                 "PUSHOVER_TOKEN": env["PUSHOVER_TOKEN"],
@@ -33,7 +33,7 @@ class NotificationsStack(core.Stack):
         self.mailjet = get_lambda(
             self,
             "%s-lambda-mailjet" % id,
-            code='lib/stacks/%s/lambda' % id,
+            code='lib/stacks/%s/lambdas' % id,
             handler="send_to_mailjet.handler",
             environment={
                 "MAILJET_API_KEY": env["MAILJET_API_KEY"],
