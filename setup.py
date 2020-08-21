@@ -46,6 +46,7 @@ setuptools.setup(
         "pylint",
         "pytest",
         "pytest-cov",
+        "pytest-env",
         "requests",
     ],
 

@@ -16,12 +16,17 @@ MAILJET_API_ENDPOINT = "https://api.mailjet.com/v3.1/send"
 
 
 def _add_content_to_attachment(attachment: Dict):
-    """Fetch bytes from S3, base64-encode and add it to 'Base64Content' `attachment` argument."""
+    """Fetch bytes from S3, base64-encode and add it to 'Base64Content' `attachment` argument.
+
+    Remove `Key` and `Bucket` keys from `attachment` too.
+    """
     utils.Log.debug("Processing attachment %s:%s", attachment["Key"], attachment["Bucket"])
     content = aws.get_object_from_s3_bucket(key=attachment["Key"], bucket=attachment["Bucket"])
+    del attachment["Key"], attachment["Bucket"]
 
     utils.Log.debug("Encode attachment content to Base64")
     attachment["Base64Content"] = standard_b64encode(content.read()).decode("utf-8")
+    content.close()
 
 
 def _message_from_event(event: utils.LambdaEvent, default_from: str = "", default_to: str = "") -> Dict:
