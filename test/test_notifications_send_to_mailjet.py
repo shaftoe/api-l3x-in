@@ -114,7 +114,7 @@ def test_deliver_to_mailjet(mock):
     assert mock.called
 
     assert "url" in mock.call_args.kwargs
-    assert mock.call_args.kwargs["url"] == "https://api.mailjet.com/v3.1/send"
+    assert mock.call_args.kwargs["url"] == send_to_mailjet.MAILJET_API_ENDPOINT
 
     assert "data" in mock.call_args.kwargs
     assert isinstance(mock.call_args.kwargs["data"], bytes)
