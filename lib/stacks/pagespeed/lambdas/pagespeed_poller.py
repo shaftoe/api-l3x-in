@@ -57,7 +57,7 @@ def fetch_and_store_all_pagespeed_scores(_: utils.LambdaEvent):
             },
         )
 
-    helpers.exec_in_thread_and_wait(*((run_job, url) for url in urls))
+    helpers.exec_in_thread_and_wait((run_job, (url, )) for url in urls)
 
     utils.Log.info("All done")
 

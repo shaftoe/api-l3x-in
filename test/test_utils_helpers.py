@@ -70,16 +70,16 @@ def test_struct_to_datetime(unixtime, microsecond, minute, hour, day, month, yea
     assert date.year == year
 
 def test_exec_in_thread_and_wait():
-    function = lambda x: x * 2
-    source = [1, 2, 3, 4, 5]
-    output = [1*2, 2*2, 3*2, 4*2, 5*2]
-    futures = helpers.exec_in_thread_and_wait(*((function, x) for x in source))
+    function = lambda x, y: x * y
+    source = [(1, 2), (2, 4), (3, 6), (4, 8), (5, 9)]
+    output = [1*2, 2*4, 3*6, 4*8, 5*9]
+    futures = helpers.exec_in_thread_and_wait((function, item) for item in source)
     results = set(future.result() for future in futures.done)
     assert results == set(output)
 
 def test_exec_in_thread_and_wait_throws():
     with pytest.raises(HandledError):
-        helpers.exec_in_thread_and_wait(*((lambda x: 1 / x, x) for x in [0, 1, 2]))
+        helpers.exec_in_thread_and_wait((lambda x: 1 / x, (x, )) for x in [2, 1, 0])
 
 @pytest.mark.parametrize(
     "mail_string, parsed",

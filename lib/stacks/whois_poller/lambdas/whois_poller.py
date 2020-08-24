@@ -35,8 +35,8 @@ def alert_if_domain_expired(_: utils.LambdaEvent) -> List[dict]:
     """Check WHOIS data for each domain in WHOIS_DOMAINS env variable, send alert if errors."""
     domains = env["WHOIS_DOMAINS"].replace(" ", "").split(",")
 
-    futures = helpers.exec_in_thread_and_wait(*((_domain_is_expiring, domain)
-                                                for domain in domains))
+    futures = helpers.exec_in_thread_and_wait((_domain_is_expiring, (domain, ))
+                                              for domain in domains)
     results = [future.result() for future in futures.done]
 
     output = [{

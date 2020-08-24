@@ -71,7 +71,7 @@ def deploy_if_feed_updates(_: utils.LambdaEvent):
 
         return True
 
-    futures = helpers.exec_in_thread_and_wait(*((update_feed, url) for url in urls))
+    futures = helpers.exec_in_thread_and_wait((update_feed, (url, )) for url in urls)
 
     if any(future.result() for future in futures.done):
         utils.Log.info("Found updates, triggering Netlify deploy")

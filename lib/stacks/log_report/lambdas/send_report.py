@@ -63,7 +63,7 @@ def _get_insight_logs() -> dict:
                                             start_time=round(start_time.timestamp()),
                                             end_time=round(end_time.timestamp())))
 
-    futures = helpers.exec_in_thread_and_wait(*((run_query, groups) for groups in group_chunks))
+    futures = helpers.exec_in_thread_and_wait((run_query, (groups, )) for groups in group_chunks)
     results = itertools.chain.from_iterable(future.result() for future in futures.done)
 
     log_entries = [{entry["field"]: entry["value"] for entry in result}

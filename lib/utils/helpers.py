@@ -144,17 +144,17 @@ def midnightify(date: datetime) -> datetime:
     return date.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def exec_in_thread_and_wait(*jobs: Tuple[Callable, Any]) -> List:
+def exec_in_thread_and_wait(jobs: Tuple[Callable, Tuple]) -> List:
     """Execute callables in a ThreadPoolExecutor and wait. Return futures."""
     from concurrent.futures import (ThreadPoolExecutor, wait)  # pylint: disable=import-outside-toplevel
     executor = ThreadPoolExecutor()  # by default preserves at least 5 workers for I/O bound tasks
 
-    futures = wait([executor.submit(job, args) for job, args in jobs])
+    futures = wait([executor.submit(job, *args) for job, args in jobs])
 
     exceptions = [future.exception() for future in futures.done.union(futures.not_done)]
     if any(exceptions):
         for ex in exceptions:
-            Log.debug("Thread throwed exception: %s", ex)
+            Log.error("Thread throwed exception: %s", ex)
         raise HandledError("Error(s) while running parallel jobs", status_code=500)
 
     return futures
