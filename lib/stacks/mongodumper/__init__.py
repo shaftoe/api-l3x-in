@@ -57,7 +57,7 @@ class MongodumperStack(core.Stack):
             self,
             f"{id}-scheduled-event",
             enabled=True,
-            schedule=aws_events.Schedule.cron(minute="50", hour="23"),  # pylint: disable=no-value-for-parameter
+            schedule=aws_events.Schedule.cron(minute="0", hour="0"),  # pylint: disable=no-value-for-parameter
         )
         cronjob.add_target(aws_events_targets.EcsTask(
             cluster=cluster,
