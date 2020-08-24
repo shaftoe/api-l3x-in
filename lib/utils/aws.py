@@ -1,6 +1,7 @@
 from io import BufferedIOBase
 from time import (sleep, time)
 from typing import (
+    Dict,
     Mapping,
     Iterable,
     List,
@@ -344,3 +345,25 @@ def update_dynamo_item(table_name: str, key: dict, att_updates: dict):
     client = session.client("dynamodb")
 
     return client.update_item(TableName=table_name, Key=key, AttributeUpdates=att_updates)
+
+
+def list_bucket(bucket_name: str) -> List[Dict]:
+    """Return list of S3 bucket keys."""
+    session = boto3.session.Session()
+    client = session.client("s3")
+
+    Log.debug("Fetching keys list from bucket %s", bucket_name)
+    result = client.list_objects_v2(Bucket=bucket_name)
+
+    try:
+        assert "KeyCount" in result
+        assert "ResponseMetadata" in result
+        assert "HTTPStatusCode" in result["ResponseMetadata"]
+        assert result["ResponseMetadata"]["HTTPStatusCode"] == 200
+        assert "Contents" in result
+
+    except AssertionError as error:
+        raise HandledError(f"Unexpected S3 response: {error}") from error
+
+    Log.debug("Found %d key(s): %s", result["KeyCount"], result["Contents"])
+    return result["Contents"]

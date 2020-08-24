@@ -13,6 +13,7 @@ with open("VERSION") as f:
 
 from aws_cdk import core
 from stacks.api import ApiStack
+from stacks.backups_monitor import BackupsMonitorStack
 from stacks.deployer import DeployerStack
 from stacks.log_report import LogReportStack
 from stacks.mongodumper import MongodumperStack
@@ -115,6 +116,16 @@ MongodumperStack(
     tags={
         'Managed': 'cdk',
         'Name': 'mongodumper',
+    },
+)
+
+BackupsMonitorStack(
+    APP,
+    'backups-monitor',
+    lambda_notifications=NOTIFICATIONS_STACK.pushover,
+    tags={
+        'Managed': 'cdk',
+        'Name': 'backups-monitor',
     },
 )
 
