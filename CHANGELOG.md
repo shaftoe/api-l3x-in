@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [0.14.0](https://github.com/shaftoe/api-l3x-in/compare/0.13.0...0.14.0) (2020-08-27)
+
+### Fixes
+
+* **log-report:** sort report logs in chronological order
+* **mongodumper:** change schedule time for cron event
+* **mongodumper:** improve Docker image size, add missing quotes to Bash
+* **notifications:** add unit tests to send_to_mailjet
+* **notifications:** add unit tests to send_to_pushover
+* **publish-to-social:** better handle missing categories meta tag
+* **utils:** lower 404 log messages to INFO level
+* **utils:** remove some dead code
+
+### Added
+
+* add backups_monitor stack
+* **notifications:** add mail-sender user for https://webmail.l3x.in
+* **notifications:** add support for arbitrary name string email addresses
+* **notifications:** add support for Cc: and Bcc: to mailjet
+* **notifications:** add support for MAIL_FROM address event input
+* **notifications:** add tests to send_to_mailjet
+* **utils:** better interface for helpers.exec_in_thread_and_wait_throws
+* add more unit tests to utils
+* add unit tests to utils.helpers
+
 # [0.13.0](https://github.com/shaftoe/api-l3x-in/compare/0.12.0...0.13.0) (2020-08-07)
 
 ### Fixes
