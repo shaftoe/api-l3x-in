@@ -35,15 +35,18 @@ def create_epub(event: utils.LambdaEvent) -> str:
     epub = NamedTemporaryFile(suffix=".epub")
     utils.Log.debug("tempfile created: %s", epub.name)
 
-    pandoc_cmd = [
-        "pandoc",
-        "--from=markdown",
-        "--to=epub",
-        f"--metadata=title:'{event['title']}'",
-        f"--output={epub.name}",
-    ]
-
     try:
+        completed = run(["pandoc", "--version"], check=True, capture_output=True, text=True)
+        utils.Log.debug(completed.stdout)
+
+        pandoc_cmd = [
+            "pandoc",
+            "--quiet",
+            "--from=markdown",
+            "--to=epub",
+            f"--metadata=title:'{event['title']}'",
+            f"--output={epub.name}",
+        ]
         timeout = 200
         utils.Log.info("Executing %s", join(pandoc_cmd))
         run(pandoc_cmd, input=bytes(markdown, encoding="utf-8"), check=True, timeout=timeout)
@@ -54,7 +57,7 @@ def create_epub(event: utils.LambdaEvent) -> str:
                                  status_code=500)
 
     except CalledProcessError as error:
-        raise utils.HandledError("Error: %s" % error, status_code=500)
+        raise utils.HandledError("Error: %s" % error, status_code=500) from error
 
     now = datetime.utcnow()
     file_name = f"pocket-{event['item_id']}" if "item_id" in event else uuid4()
