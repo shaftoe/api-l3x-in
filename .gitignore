@@ -8,3 +8,4 @@ config.mk
 pandoc
 run.py
 .coverage
+.DS_Store

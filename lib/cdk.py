@@ -110,15 +110,6 @@ DeployerStack(
     },
 )
 
-MongodumperStack(
-    APP,
-    'mongodumper',
-    tags={
-        'Managed': 'cdk',
-        'Name': 'mongodumper',
-    },
-)
-
 BackupsMonitorStack(
     APP,
     'backups-monitor',

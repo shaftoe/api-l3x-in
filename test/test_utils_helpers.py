@@ -1,7 +1,7 @@
 from types import ModuleType
 from datetime import datetime
-import pytest
 import time
+import pytest
 
 from utils import HandledError
 import utils.helpers as helpers
@@ -56,7 +56,7 @@ def test_midnightify():
     "unixtime, microsecond, minute, hour, day, month, year",
     [
         (0, 0, 0, 0, 1, 1, 1970),
-        (1597308735, 0, 52, 8, 13, 8, 2020),
+        (1597308735, 0, 52, 9, 13, 8, 2020),
     ]
 )
 def test_struct_to_datetime(unixtime, microsecond, minute, hour, day, month, year):
