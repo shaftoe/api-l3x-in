@@ -1,7 +1,6 @@
 from typing import (
     Callable,
     Mapping,
-    Optional,
 )
 import json
 from sys import getsizeof
@@ -95,7 +94,7 @@ class SnsEventHandler(EventHandler):
 
     def __init__(self, name: str, event: LambdaEvent, context: LambdaContext,
                  action: Callable[[dict], None],
-                 disable: Optional[str] = "disable"):
+                 disable: str = "disable"):
         """SNS-triggered Lambda event handler
 
         :param disable: pre_action will check in event[disable] list for lambdas

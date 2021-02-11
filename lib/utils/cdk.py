@@ -26,7 +26,7 @@ DEFAULT_MEM_SIZE = 256
 def code_from_path(path: str) -> aws_lambda.Code:
     return aws_lambda.Code.from_asset(  # pylint: disable=no-value-for-parameter
         path=path.replace("-", "_"),
-        follow=assets.FollowMode.ALWAYS,
+        follow=core.SymlinkFollowMode.ALWAYS,
         exclude=[
             "**__pycache__",
             "*.pyc",
@@ -34,11 +34,11 @@ def code_from_path(path: str) -> aws_lambda.Code:
         ],
     )
 
-
+# pylint: disable=unsubscriptable-object
 def get_lambda(scope: core.Construct, id: str,  # pylint: disable=redefined-builtin,invalid-name
                code: Union[aws_lambda.Code, str],
                handler: str,
-               timeout: Optional[core.Duration] = DEFAULT_TIMEOUT,
+               timeout: core.Duration = DEFAULT_TIMEOUT,
                layers: Optional[Iterable[aws_lambda.ILayerVersion]] = None,
                environment: Optional[Mapping] = None,
                on_success: Optional[aws_lambda.IDestination] = None,
@@ -73,7 +73,7 @@ def get_layer(scope: core.Construct,
               layer_name: str,
               prefix: str,
               compatible_runtimes: Optional[Iterable[aws_lambda.Runtime]] = None,
-              description: Optional[str] = None) -> aws_lambda.LayerVersion:
+              description: str = None) -> aws_lambda.LayerVersion:
 
     if not compatible_runtimes:
         compatible_runtimes = [DEFAULT_RUNTIME]

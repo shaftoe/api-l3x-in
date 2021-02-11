@@ -169,7 +169,7 @@ def send_event_to_logstream(log_group: str, log_stream: str, message: Mapping) -
                                    status_code=500)
 
 
-def read_log_stream(log_group: str, log_stream: str, start_time: Optional[int] = 0) -> Iterable:
+def read_log_stream(log_group: str, log_stream: str, start_time: int = 0) -> Iterable:
     """Return all events from log stream.
 
     :param start_time: optional UNIX epoch in milliseconds
@@ -217,8 +217,8 @@ def read_all_log_streams(log_group: str) -> Mapping:
 
 
 def put_object_to_s3_bucket(key: str, bucket: str,
-                            body: Union[BufferedIOBase, bytes],
-                            wait: Optional[bool] = False) -> Mapping:
+                            body: Union[BufferedIOBase, bytes], # pylint: disable=unsubscriptable-object
+                            wait: bool = False) -> Mapping:
     Log.info("Put key %s to S3 bucket %s", key, bucket)
 
     session = boto3.session.Session()
@@ -245,15 +245,15 @@ def get_object_from_s3_bucket(key: str, bucket: str) -> BufferedIOBase:
     except boto_exceptions.ClientError as error:
 
         if error.response["Error"]["Code"] == "NoSuchKey":
-            raise HandledError("Key %s not found in bucket %s" % (key, bucket), status_code=404)
+            raise HandledError("Key %s not found in bucket %s" % (key, bucket), status_code=404) from error
 
         raise error
 
 
 def trigger_ecs_fargate_task(task: str, cluster: str,
                              subnets: List[str], security_groups: List[str],
-                             assign_public_ip: Optional[bool] = True,
-                             overrides: Optional[Mapping] = None) -> Mapping:
+                             assign_public_ip: bool = True,
+                             overrides: Optional[Mapping] = None) -> Mapping: # pylint: disable=unsubscriptable-object
     Log.info("Trigger Fargate task %s", task)
 
     session = boto3.session.Session()

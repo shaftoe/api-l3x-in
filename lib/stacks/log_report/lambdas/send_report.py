@@ -85,7 +85,7 @@ def _get_insight_logs() -> dict:
     return logs
 
 
-def _create_md_document(logs: dict) -> Union[str, None]:
+def _create_md_document(logs: dict) -> str:
     """Create Markdown report from logs dictionary.
 
     `logs` format is:

@@ -18,7 +18,7 @@ from .helpers import (
 oauthlib = import_non_stdlib_module("oauthlib.oauth2")  # pylint: disable=invalid-name
 requests_oauthlib = import_non_stdlib_module("requests_oauthlib")  # pylint: disable=invalid-name
 
-
+# pylint: disable=unsubscriptable-object
 def post_request_to_v1_endpoint(
         url: str, client_key: str, client_secret: str,
         resource_owner_key: str, resource_owner_secret: str,
@@ -84,7 +84,7 @@ def get_v2_access_token(token_url: str, client_id: str,
 
 def post_request_to_v2_endpoint(
         token_url: str, publish_url: str, client_id: str,
-        client_secret: str, data: Mapping, auth_token: Optional[str] = None,
+        client_secret: str, data: Mapping, auth_token: str = None,
         scope: Optional[Iterable] = None) -> Response:
 
     if not (token_url or auth_token):

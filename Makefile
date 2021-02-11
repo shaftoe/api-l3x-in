@@ -29,7 +29,7 @@ requirements: check_python
 	pip install --quiet -e .
 
 cdk_version:
-	@printf '$(GREEN)$(BOLD)### Running CDK version $(shell cdk --version)$(CLR)\n'
+	@printf '$(GREEN)$(BOLD)### Running CDK version $(shell cdk --version) Node.js $(shell node --version)$(CLR)\n'
 
 bootstrap: requirements run-tests cdk_version
 	@printf '$(GREEN)$(BOLD)### Bootstrap$(CLR)\n'
@@ -82,7 +82,6 @@ pytest:
 run-tests: pylint pytest
 
 upgrade-cdk: check_python
-	@npm update -g aws-cdk
 	@pip list --outdated --format=freeze \
 		| grep aws-cdk \
 		| cut -d = -f 1  \

@@ -66,7 +66,7 @@ def validate_url(url: str):
     if not all([result.scheme in ["file", "http", "https"], result.netloc, result.path]):
         raise HandledError(message="URL invalid: %s" % url)
 
-
+# pylint: disable=unsubscriptable-object
 def send_http_request(url: str, method: str = "POST", data: Optional[Mapping] = None,
                       headers: Optional[Mapping] = None,
                       auth: Optional[Mapping] = None) -> Response:

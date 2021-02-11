@@ -4,7 +4,6 @@ from re import match
 from typing import (
     Dict,
     List,
-    Optional,
     Tuple,
 )
 
@@ -16,18 +15,18 @@ TODAY = date.today()
 
 
 def _get_expected_values(bucket_name: str, retention_days: int,
-                         start_day_isoformat: Optional[str] = None) -> Tuple[int, date]:
+                         start_day_isoformat: str = None) -> Tuple[int, date]:
     """Validate input, return exected backup list size and first backup date."""
     try:
         assert isinstance(bucket_name, str)
-    except AssertionError:
+    except AssertionError as error:
         raise utils.HandledError("Invalid bucket_name argument: %s" % bucket_name,
-                                 status_code=500)
+                                 status_code=500) from error
     try:
         assert retention_days > 0
     except (TypeError, AssertionError) as error:
         raise utils.HandledError(f"Invalid retention_days: expected positive integer, got {error}",
-                                 status_code=500)
+                                 status_code=500) from error
 
     utils.Log.debug("Validate backups in bucket %s", bucket_name)
 
@@ -57,8 +56,8 @@ def _get_expected_values(bucket_name: str, retention_days: int,
     return expected_backups, first_expected
 
 
-def _validate_backup_keys(keys: List[Dict], first_expected: date, regexp: Optional[str] = None,
-                          tolerance: Optional[int] = None):
+def _validate_backup_keys(keys: List[Dict], first_expected: date, regexp: str = None,
+                          tolerance: int = None):
     previous_file_size = 0
     check_day = first_expected
 
@@ -100,9 +99,9 @@ def _validate_backup_keys(keys: List[Dict], first_expected: date, regexp: Option
 
 
 def _check_bucket_validity(bucket_name: str, retention_days: int,
-                           regexp: Optional[str] = None,
-                           start_day_isoformat: Optional[str] = None,
-                           tolerance: Optional[int] = None) -> str:
+                           regexp: str = None,
+                           start_day_isoformat: str = None,
+                           tolerance: int = None) -> str:
     expected_backups, first_expected = _get_expected_values(bucket_name,
                                                             retention_days,
                                                             start_day_isoformat)

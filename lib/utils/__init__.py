@@ -8,7 +8,6 @@ from datetime import datetime
 from os import environ
 from typing import (
     NewType,
-    Optional,
     Union,
 )
 import json
@@ -16,6 +15,7 @@ import logging
 import urllib.parse
 import urllib.request
 
+# pylint: disable=unsubscriptable-object
 
 LOG_LEVEL = environ.get("LAMBDA_FUNCTIONS_LOG_LEVEL", "INFO")
 Log = logging.getLogger()  # pylint: disable=invalid-name
@@ -55,7 +55,7 @@ class Response(dict):
     Subclass `dict` to be JSON serializable: https://stackoverflow.com/a/31207881/2274124
     """
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: str = None):
         dict.__init__(self)
         self._name = name
         self._body = {"name": self._name} if self._name else {}

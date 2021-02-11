@@ -4,7 +4,6 @@ Send MOBI file to Kindle service and archive Pocket article.
 """
 from os import environ as env
 from re import search
-from typing import Optional
 from uuid import uuid4
 import json
 
@@ -35,7 +34,7 @@ def _archive_pocket_item(item_id: int):
                 }])})
 
 
-def _send_attachment_to_kindle(key: str, bucket: str, item_id: Optional[int] = None) -> utils.Response:
+def _send_attachment_to_kindle(key: str, bucket: str, item_id: int = None) -> utils.Response:
     utils.Log.info("Send attachment to %s via %s email notification service",
                    env["KINDLE_EMAIL"], env["LAMBDA_NOTIFICATIONS"])
     return aws.invoke_lambda(
