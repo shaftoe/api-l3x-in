@@ -10,10 +10,10 @@ def cleanup_cache_files(root_path: str) -> None:
     for dirpath, _, filenames in walk(root_path):
 
         for filename in filenames:
-            if filename.endswith(".pyc"):
-                pyc_file = "%s/%s" % (dirpath, filename)
-                cli_helper.log.info("Removing file   %s", pyc_file)
-                remove(pyc_file)
+            if filename.endswith(".pyc") or filename.endswith(".bak"):
+                cache_file = "%s/%s" % (dirpath, filename)
+                cli_helper.log.info("Removing file   %s", cache_file)
+                remove(cache_file)
 
         if any(map(dirpath.endswith, ["__pycache__", ".egg-info"])):
 

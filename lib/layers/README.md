@@ -33,10 +33,14 @@ returns exit code 0
 ## Install
 
 - bs4
-  - https://www.crummy.com/software/BeautifulSoup/bs4/download/
+  - <https://www.crummy.com/software/BeautifulSoup/bs4/download/>
   - pip install -t . soupsieve
-  - 2to3 -w bs4
+  - 2to3 -w --nobackups bs4
 - requests_oauth
   - pip install -t . requests_oauth
+- readability
+  - pip install -t . readability-lxml
+  - see <https://github.com/shubh2502/aws-lambda-lxml> for `lxml` build instructions
+  - 2to3 -w --nobackups .
 
 and remember to cleanup useless files like `pyc`, tests, etc

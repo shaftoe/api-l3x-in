@@ -1,6 +1,6 @@
 """Lambda send-to-kindle publisher.
 
-Send MOBI file to Kindle service and archive Pocket article.
+Send document to Kindle service and archive Pocket article.
 """
 from os import environ as env
 from re import search
@@ -37,32 +37,45 @@ def _archive_pocket_item(item_id: int):
 def _send_attachment_to_kindle(key: str, bucket: str, item_id: int = None) -> utils.Response:
     utils.Log.info("Send attachment to %s via %s email notification service",
                    env["KINDLE_EMAIL"], env["LAMBDA_NOTIFICATIONS"])
+
+    extension = None
+    if key.endswith(".mobi"):
+        extension = "mobi"
+    if key.endswith(".html"):
+        extension = "html"
+    if extension not in ["mobi", "html"]:
+        raise utils.HandledError(
+            message="Invalid document extension: must be either '.mobi' or '.html'",
+            status_code=401)
+
     return aws.invoke_lambda(
         name=env["LAMBDA_NOTIFICATIONS"],
         payload={
             "mail_to": env["KINDLE_EMAIL"],
             "attachments": [{
-                # https://www.iana.org/assignments/media-types/application/vnd.amazon.mobi8-ebook
-                "ContentType": "application/vnd.amazon.mobi8-ebook",
+                # https://www.iana.org/assignments/media-types/
+                "ContentType": "application/vnd.amazon.mobi8-ebook" \
+                               if extension == "mobi" else "text/html",
                 "Key": key,
                 "Bucket": bucket,
-                "Filename": f"pocket-{item_id}.mobi" if item_id else f"{uuid4()}.mobi",
+                "Filename": f"pocket-{item_id}.{extension}" \
+                            if item_id else f"{uuid4()}.{extension}",
             }],
         },
         invoke_type="Event")
 
 
 def send(event: utils.LambdaEvent) -> str:
-    """Send MOBI to Kindle."""
+    """Send document to Kindle."""
     # When file matches "pocket" format we're processing a Pocket item, so if everything goes
     # as expected we archive it before exiting
-    match = search(r'pocket-(\d+)\.mobi', event["keyName"])
+    match = search(r'pocket-(\d+)', event["keyName"])
     item_id = None
     if match:
         item_id = int(match.groups()[0])
 
     response = _send_attachment_to_kindle(key=event["keyName"],
-                                          bucket=env["MOBI_SRC_BUCKET"],
+                                          bucket=env["DOCUMENT_SRC_BUCKET"],
                                           item_id=item_id)
 
     if response.status_code != 200:

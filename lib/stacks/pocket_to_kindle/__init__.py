@@ -48,27 +48,25 @@ class PocketToKindleStack(core.Stack):
         # Lambda shared code
         lambda_code = code_from_path(path=f"lib/stacks/{id}/lambdas")
 
-        # Lambda create_epub (and layers): build epub file and store to S3 bucket
-        epub_bucket = get_bucket(self, f"{id}-epub-bucket")
+        # Lambda create_doc (and layers): build document file and store to S3 bucket
+        bucket = get_bucket(self, f"{id}-bucket")
 
-        lambda_create_epub = get_lambda(
+        lambda_create_doc = get_lambda(
             self,
-            id + "-create-epub",
+            id + "-create-document",
             code=lambda_code,
-            handler="create_epub.handler",
+            handler="create_doc.handler",
             environment={
-                "EPUB_BUCKET": epub_bucket.bucket_name,
+                "DOCUMENT_BUCKET": bucket.bucket_name,
             },
             layers=[get_layer(self, layer_name=layer, prefix=id)
-                    for layer in ("pandoc", "html2text", "requests_oauthlib")],
+                    for layer in ("readability", "requests_oauthlib")],
             timeout=core.Duration.minutes(5),  # pylint: disable=no-value-for-parameter
         )
-        epub_bucket.grant_write(lambda_create_epub)
+        bucket.grant_write(lambda_create_doc)
 
-        # Lambda send_to_kindle: invoked when new MOBI dropped into S3 bucket, deliver MOBI as
-        # email attachment via lambda_notifications
-        mobi_bucket = get_bucket(self, f"{id}-mobi-bucket")
-
+        # Lambda send_to_kindle: invoked when new documents dropped into S3 bucket,
+        # deliver document as email attachment via lambda_notifications
         lambda_send_to_kindle = get_lambda(
             self,
             id + "-send-to-kindle",
@@ -77,12 +75,12 @@ class PocketToKindleStack(core.Stack):
             environment={
                 "KINDLE_EMAIL": env["KINDLE_EMAIL"],
                 "LAMBDA_NOTIFICATIONS": lambda_notifications.function_name,
-                "MOBI_SRC_BUCKET": mobi_bucket.bucket_name,
+                "DOCUMENT_SRC_BUCKET": bucket.bucket_name,
                 "POCKET_CONSUMER_KEY": env["POCKET_CONSUMER_KEY"],
                 "POCKET_SECRET_TOKEN": env["POCKET_SECRET_TOKEN"],
             }
         )
-        mobi_bucket.add_event_notification(
+        bucket.add_event_notification(
             event=aws_s3.EventType.OBJECT_CREATED_PUT,
             dest=aws_s3_notifications.LambdaDestination(lambda_send_to_kindle),
         )
@@ -94,19 +92,19 @@ class PocketToKindleStack(core.Stack):
             statements=[
                 aws_iam.PolicyStatement(
                     actions=["s3:GetObject"],
-                    resources=[f"{mobi_bucket.bucket_arn}/*"]
+                    resources=[f"{bucket.bucket_arn}/*"]
                 )
             ],
         )
 
-        # Lambda reader: fetch new articles from Pocket and fan-out trigger create_epub Lambda
+        # Lambda reader: fetch new articles from Pocket and fan-out trigger create_doc Lambda
         lambda_reader = get_lambda(
             self,
             id + "-reader",
             code=lambda_code,
             handler="reader.handler",
             environment={
-                "LAMBDA_PUBLISHER": lambda_create_epub.function_name,
+                "LAMBDA_PUBLISHER": lambda_create_doc.function_name,
                 "POCKET_CONSUMER_KEY": env["POCKET_CONSUMER_KEY"],
                 "POCKET_SECRET_TOKEN": env["POCKET_SECRET_TOKEN"],
                 "SINCE_LOG_GROUP": since_log_group.log_group_name,
@@ -117,70 +115,7 @@ class PocketToKindleStack(core.Stack):
             "logs:GetLogEvents",
             "logs:PutLogEvents",
         )
-        lambda_create_epub.grant_invoke(lambda_reader)
-
-        # Fargate task: run dockerized `kindlegen` to parse EPUB to MOBI,
-        # triggered by trigger_ecs_task Lambda
-        # https://medium.com/@piyalikamra/s3-event-based-trigger-mechanism-to-start-ecs-far-gate-tasks-without-lambda-32f57ed10b0d
-        cluster, vpc = get_fargate_cluster(self, id)
-
-        mem_limit = "512"
-        task = get_fargate_task(self, id, mem_limit)
-        aws_iam.Policy(
-            self,
-            f"{id}-bucket-policy",
-            roles=[task.task_role],
-            statements=[
-                aws_iam.PolicyStatement(
-                    actions=["s3:GetObject"],
-                    resources=[f"{epub_bucket.bucket_arn}/*"]
-                ),
-                aws_iam.PolicyStatement(
-                    actions=["s3:PutObject"],
-                    resources=[f"{mobi_bucket.bucket_arn}/*"]
-                ),
-            ],
-        )
-
-        container = get_fargate_container(self, id, task, mem_limit)
-
-        # Lambda trigger_ecs_task: trigger Fargate task when new EPUB file is dropped into epub_bucket
-        lambda_trigger_ecs_task = get_lambda(
-            self,
-            f"{id}-trigger-ecs-task",
-            code=lambda_code,
-            handler="trigger_ecs_task.handler",
-            environment={
-                "ECS_CLUSTER": cluster.cluster_arn,
-                "ECS_CLUSTER_SECURITY_GROUP": vpc.vpc_default_security_group,
-                "ECS_CLUSTER_SUBNET": vpc.public_subnets[0].subnet_id,
-                "ECS_CONTAINER": container.container_name,
-                "ECS_TASK": task.task_definition_arn,
-                "MOBI_DEST_BUCKET": mobi_bucket.bucket_name,
-            },
-        )
-        epub_bucket.add_event_notification(
-            event=aws_s3.EventType.OBJECT_CREATED_PUT,
-            dest=aws_s3_notifications.LambdaDestination(lambda_trigger_ecs_task),
-        )
-        aws_iam.Policy(
-            self,
-            f"{id}-lambda-trigger-policy",
-            roles=[lambda_trigger_ecs_task.role],
-            statements=[
-                aws_iam.PolicyStatement(
-                    actions=["ecs:RunTask"],
-                    resources=[task.task_definition_arn],
-                ),
-                aws_iam.PolicyStatement(
-                    actions=["iam:PassRole"],
-                    resources=[
-                        task.execution_role.role_arn,
-                        task.task_role.role_arn,
-                    ],
-                )
-            ],
-        )
+        lambda_create_doc.grant_invoke(lambda_reader)
 
         # Cloudwatch cronjob event to check for new articles every hour
         cronjob = aws_events.Rule(
@@ -190,60 +125,3 @@ class PocketToKindleStack(core.Stack):
             schedule=aws_events.Schedule.cron(minute="0"),  # pylint: disable=no-value-for-parameter
         )
         cronjob.add_target(aws_events_targets.LambdaFunction(handler=lambda_reader))
-
-        # NOTE: lambda_trigger_ecs_task should be replaced by Cloudtrail event notification when I figure out
-        # how to do it with CDK. Ref: https://github.com/aws-samples/aws-cdk-examples/issues/254. Follows tentative
-        # implementation
-
-        # # Cloudtrail to send events to Fargate task
-        # cloudtrail_bucket = get_bucket(self, f"{id}-cloudtrail-bucket",
-        #                                expiration=core.Duration.days(amount=1))  # pylint: disable=no-value-for-parameter
-
-        # cloudtrail = aws_cloudtrail.Trail(
-        #     self,
-        #     f"{id}-cloudtrail",
-        #     bucket=cloudtrail_bucket,
-        #     include_global_service_events=False,
-        #     is_multi_region_trail=False,
-        # )
-        # # Add a filter to remove all irrelevant events beside the ones relative to epub_bucket
-        # cloudtrail.add_s3_event_selector(
-        #     prefixes=[f"{epub_bucket.bucket_arn}/"],
-        #     include_management_events=False,
-        #     read_write_type=aws_cloudtrail.ReadWriteType.WRITE_ONLY,
-        # )
-
-        # cloudtrail.on_cloud_trail_event(
-        #     f"{id}-cloudtrail-s3-put-objects",
-        #     # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html
-        #     event_pattern=aws_events.EventPattern(
-        #         detail={"eventName": ["PutObject"]},
-        #         resources=[epub_bucket.bucket_arn],
-        #     ),
-        #     target=aws_events_targets.EcsTask(
-        #         cluster=cluster,
-        #         task_definition=task,
-        #         subnet_selection=aws_ec2.SubnetSelection(
-        #             subnet_group_name=subnet_name,
-        #         ),
-        #         container_overrides=[
-        #             aws_events_targets.ContainerOverride(
-        #                 container_name=container.container_name,
-        #                 environment=[
-        #                     aws_events_targets.TaskEnvironmentVariable(
-        #                         name="EPUB_SRC_BUCKET",
-        #                         value=epub_bucket.bucket_name,
-        #                     ),
-        #                     aws_events_targets.TaskEnvironmentVariable(
-        #                         name="EPUB_SRC_KEY",
-        #                         value="$.detail.requestParameters.key", FIXME
-        #                     ),
-        #                     aws_events_targets.TaskEnvironmentVariable(
-        #                         name="MOBI_DEST_BUCKET",
-        #                         value=mobi_bucket.bucket_name,
-        #                     ),
-        #                 ],
-        #             ),
-        #         ],
-        #     )
-        # )
