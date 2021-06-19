@@ -59,16 +59,6 @@ ApiStack(
     },
 )
 
-PocketToKindleStack(
-    APP,
-    'pocket-to-kindle',
-    lambda_notifications=NOTIFICATIONS_STACK.mailjet,
-    tags={
-        'Managed': 'cdk',
-        'Name': 'pocket-to-kindle',
-    },
-)
-
 LogReportStack(
     APP,
     'log-report',
