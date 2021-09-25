@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [0.15.0](https://github.com/shaftoe/api-l3x-in/compare/0.14.0...0.15.0) (2021-09-25)
+
+### Fixes
+
+- **deployer:** better handle feedparser response
+- disable MongoDumper stack, add TODO, fix test
+
+### Added
+
+- **pocket-to-kindle:** upgrade Pandoc to 2.10.1, silence warnings
+
+### Changes
+
+- cleanup Makefile
+- Disable pocket-to-kindle stack
+- Disable pagespeed stack
+- Replace kindlegen with python-readability
+- Disable pylint errors with Python 3.9
+
 # [0.14.0](https://github.com/shaftoe/api-l3x-in/compare/0.13.0...0.14.0) (2020-08-27)
 
 ### Fixes
