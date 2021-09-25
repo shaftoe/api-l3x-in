@@ -15,10 +15,14 @@ feedparser = helpers.import_non_stdlib_module("feedparser")  # pylint: disable=i
 def _get_last_update(feed_url: str) -> datetime:
     '''Fetch RSS entries, return update datetime for last entry.'''
     utils.Log.info("Fetching content from %s", feed_url)
-    last_update = feedparser.parse(feed_url)['entries'][0]['updated_parsed']
+    last_update = feedparser.parse(feed_url)
+    if 'entries' in last_update and len(last_update['entries']) > 0:
+        last_update = last_update['entries'][0]['updated_parsed']
+        utils.Log.debug('%s updated_parsed: %s', feed_url, last_update)
+        return helpers.struct_to_datetime(last_update)
+    else:
+        raise IndexError(f"Unexpected response content from {feed_url}")
 
-    utils.Log.debug('%s updated_parsed: %s', feed_url, last_update)
-    return helpers.struct_to_datetime(last_update)
 
 
 def _get_stored_timestamp() -> Dict[str, str]:
